@@ -1,0 +1,681 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2E307C1A-874C-4E38-8229-24015F4B4591}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TeachingEvaluation</RootNamespace>
+    <AssemblyName>TeachingEvaluation</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\FiscaRuntime\addmodules\TeachingEvaluation\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Cells">
+      <HintPath>..\FiscaRuntime\modules\LIB_ASPOSE\Aspose.Cells.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Campus">
+      <HintPath>..\FiscaRuntime\modules\LIB_Campus\Campus.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Campus.Windows">
+      <HintPath>..\FiscaRuntime\modules\LIB_Campus\Campus.Windows.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevComponents.DotNetBar2, Version=9.5.0.1, Culture=neutral, PublicKeyToken=7eb7c3a35b91de04, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\FiscaRuntime\components\DevComponents.DotNetBar2.dll</HintPath>
+    </Reference>
+    <Reference Include="FISCA">
+      <HintPath>..\FiscaRuntime\kernel\FISCA.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FISCA.Authentication">
+      <HintPath>..\FiscaRuntime\kernel\FISCA.Authentication.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FISCA.Data">
+      <HintPath>..\FiscaRuntime\kernel\FISCA.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FISCA.DSAUtil">
+      <HintPath>..\FiscaRuntime\kernel\FISCA.DSAUtil.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FISCA.Permission, Version=1.1.0.15, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\FiscaRuntime\kernel\FISCA.Permission.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FISCA.Presentation">
+      <HintPath>..\FiscaRuntime\kernel\FISCA.Presentation.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="FISCA.UDT">
+      <HintPath>..\..\FiscaRuntime\kernel\FISCA.UDT.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="K12.Data">
+      <HintPath>..\FiscaRuntime\modules\LIB_K12DAL\K12.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="K12.Presentation">
+      <HintPath>..\FiscaRuntime\modules\LIB_Campus\K12.Presentation.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.mshtml, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BusinessLogic\Answer.cs" />
+    <Compile Include="BusinessLogic\Case.cs" />
+    <Compile Include="BusinessLogic\DataPool.cs" />
+    <Compile Include="BusinessLogic\QuestionOption.cs" />
+    <Compile Include="BusinessLogic\Question.cs" />
+    <Compile Include="BusinessLogic\Reply.cs" />
+    <Compile Include="BusinessLogic\Report.cs" />
+    <Compile Include="BusinessLogic\StatisticsBase.cs" />
+    <Compile Include="BusinessLogic\Survey.cs" />
+    <Compile Include="BusinessLogic\TeacherStatistics.cs" />
+    <Compile Include="DataItems\SemesterItem.cs" />
+    <Compile Include="DetailItems\Teacher_EvaluationProgressEnquiry.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DetailItems\Teacher_EvaluationProgressEnquiry.Designer.cs">
+      <DependentUpon>Teacher_EvaluationProgressEnquiry.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Event\DeliverDetailContent.cs" />
+    <Compile Include="Event\DeliverDetailContentEvent.cs" />
+    <Compile Include="Export\ExportEvaluation_Course.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_Course.Designer.cs">
+      <DependentUpon>ExportEvaluation_Course.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_Integrated.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_Integrated.Designer.cs">
+      <DependentUpon>ExportEvaluation_Integrated.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_Teacher.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_Teacher.Designer.cs">
+      <DependentUpon>ExportEvaluation_Teacher.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Export\ExportValuation_UseCase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Export\ExportValuation_UseCase.Designer.cs">
+      <DependentUpon>ExportValuation_UseCase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_Subject.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_Subject.Designer.cs">
+      <DependentUpon>ExportEvaluation_Subject.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_ComplexQueries.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_ComplexQueries.Designer.cs">
+      <DependentUpon>ExportEvaluation_ComplexQueries.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Extensions.cs" />
+    <Compile Include="Forms\AchievingRateSetting.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AchievingRateSetting.Designer.cs">
+      <DependentUpon>AchievingRateSetting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\CS_Template.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CS_Template.Designer.cs">
+      <DependentUpon>CS_Template.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Email_Credential.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Email_Credential.Designer.cs">
+      <DependentUpon>Email_Credential.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Email_Sender.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Email_Sender.Designer.cs">
+      <DependentUpon>Email_Sender.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmQuerySurveyHistory.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmQuerySurveyHistory.Designer.cs">
+      <DependentUpon>frmQuerySurveyHistory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmEMailingLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmEMailingLog.Designer.cs">
+      <DependentUpon>frmEMailingLog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmEvaluationEMailing.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmEvaluationEMailing.Designer.cs">
+      <DependentUpon>frmEvaluationEMailing.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmHTML_Preview.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmHTML_Preview.Designer.cs">
+      <DependentUpon>frmHTML_Preview.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmCalculateEvaluation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmCalculateEvaluation.Designer.cs">
+      <DependentUpon>frmCalculateEvaluation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmAssignedSurvy_SingleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmAssignedSurvy_SingleForm.Designer.cs">
+      <DependentUpon>frmAssignedSurvy_SingleForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmEvaluationCalc.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmEvaluationCalc.Designer.cs">
+      <DependentUpon>frmEvaluationCalc.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmEvaluationConfiguration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmEvaluationConfiguration.Designer.cs">
+      <DependentUpon>frmEvaluationConfiguration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmHierarchyMangagement.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmHierarchyMangagement.Designer.cs">
+      <DependentUpon>frmHierarchyMangagement.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmMandrillApiKey.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmMandrillApiKey.Designer.cs">
+      <DependentUpon>frmMandrillApiKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmStatistics_SingleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmStatistics_SingleForm.Designer.cs">
+      <DependentUpon>frmStatistics_SingleForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\SurveyCreator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SurveyCreator.designer.cs">
+      <DependentUpon>SurveyCreator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\TestEmailing.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\TestEmailing.Designer.cs">
+      <DependentUpon>TestEmailing.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\CS_Template_NoSubject.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CS_Template_NoSubject.Designer.cs">
+      <DependentUpon>CS_Template_NoSubject.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\CS_Template_Survey_History.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CS_Template_Survey_History.Designer.cs">
+      <DependentUpon>CS_Template_Survey_History.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PrivateControl\CardPanelEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PrivateControl\DescriptionPane.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PrivateControl\DescriptionPane.Designer.cs">
+      <DependentUpon>DescriptionPane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PrivateControl\DetailContent.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PrivateControl\DetailContent.Designer.cs">
+      <DependentUpon>DetailContent.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PrivateControl\DetailItemContainer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PrivateControl\DetailPane.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PrivateControl\DetailPane.Designer.cs">
+      <DependentUpon>DetailPane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PrivateControl\ILazyOrder.cs" />
+    <Compile Include="PrivateControl\PupopDetailPane.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PrivateControl\PupopDetailPane.Designer.cs">
+      <DependentUpon>PupopDetailPane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PrivateControl\XPreference.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QuestionTemplate\Essay.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="QuestionTemplate\Essay.Designer.cs">
+      <DependentUpon>Essay.cs</DependentUpon>
+    </Compile>
+    <Compile Include="QuestionTemplate\MultiChoice.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="QuestionTemplate\MultiChoice.Designer.cs">
+      <DependentUpon>MultiChoice.cs</DependentUpon>
+    </Compile>
+    <Compile Include="QuestionTemplate\TemplatePool.cs" />
+    <Compile Include="QuestionTemplate\SingleChoice.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="QuestionTemplate\SingleChoice.Designer.cs">
+      <DependentUpon>SingleChoice.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UDT\AssignedSurvey.cs" />
+    <Compile Include="UDT\Case.cs" />
+    <Compile Include="UDT\CaseUsage.cs" />
+    <Compile Include="UDT\AchievingRate.cs" />
+    <Compile Include="UDT\MandrillSendLog.cs" />
+    <Compile Include="UDT\CourseExtVO.cs" />
+    <Compile Include="UDT\CSConfiguration.cs" />
+    <Compile Include="UDT\Hierarchy.cs" />
+    <Compile Include="UDT\MandrillApiKey.cs" />
+    <Compile Include="UDT\QHRelation.cs" />
+    <Compile Include="UDT\Subject.cs" />
+    <Compile Include="UDT\TeacherStatistics.cs" />
+    <Compile Include="UDT\StatisticsGroup.cs" />
+    <Compile Include="UDT\Question.cs" />
+    <Compile Include="UDT\QuestionOption.cs" />
+    <Compile Include="UDT\Reply.cs" />
+    <Compile Include="UDT\Section.cs" />
+    <Compile Include="UDT\Survey.cs" />
+    <Compile Include="UDT\FieldAttribute.cs" />
+    <Compile Include="UDT\CaseStatistics.cs" />
+    <Compile Include="UDT\CourseStatistics.cs" />
+    <Compile Include="UDT\SubjectStatistics.cs" />
+    <Compile Include="Utility\Utility.cs" />
+    <EmbeddedResource Include="DetailItems\Teacher_EvaluationProgressEnquiry.resx">
+      <DependentUpon>Teacher_EvaluationProgressEnquiry.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportEvaluation_ComplexQueries.resx">
+      <DependentUpon>ExportEvaluation_ComplexQueries.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportEvaluation_Course.resx">
+      <DependentUpon>ExportEvaluation_Course.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportEvaluation_Integrated.resx">
+      <DependentUpon>ExportEvaluation_Integrated.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportEvaluation_Teacher.resx">
+      <DependentUpon>ExportEvaluation_Teacher.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportValuation_UseCase.resx">
+      <DependentUpon>ExportValuation_UseCase.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportEvaluation_Subject.resx">
+      <DependentUpon>ExportEvaluation_Subject.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\AchievingRateSetting.resx">
+      <DependentUpon>AchievingRateSetting.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\CS_Template.resx">
+      <DependentUpon>CS_Template.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Email_Credential.resx">
+      <DependentUpon>Email_Credential.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Email_Sender.resx">
+      <DependentUpon>Email_Sender.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmQuerySurveyHistory.resx">
+      <DependentUpon>frmQuerySurveyHistory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmEMailingLog.resx">
+      <DependentUpon>frmEMailingLog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmEvaluationEMailing.resx">
+      <DependentUpon>frmEvaluationEMailing.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmHTML_Preview.resx">
+      <DependentUpon>frmHTML_Preview.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmCalculateEvaluation.resx">
+      <DependentUpon>frmCalculateEvaluation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmAssignedSurvy_SingleForm.resx">
+      <DependentUpon>frmAssignedSurvy_SingleForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmEvaluationCalc.resx">
+      <DependentUpon>frmEvaluationCalc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmEvaluationConfiguration.resx">
+      <DependentUpon>frmEvaluationConfiguration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmHierarchyMangagement.resx">
+      <DependentUpon>frmHierarchyMangagement.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmMandrillApiKey.resx">
+      <DependentUpon>frmMandrillApiKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmStatistics_SingleForm.resx">
+      <DependentUpon>frmStatistics_SingleForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SurveyCreator.resx">
+      <DependentUpon>SurveyCreator.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\TestEmailing.resx">
+      <DependentUpon>TestEmailing.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\CS_Template_NoSubject.resx">
+      <DependentUpon>CS_Template_NoSubject.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\CS_Template_Survey_History.resx">
+      <DependentUpon>CS_Template_Survey_History.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrivateControl\DescriptionPane.resx">
+      <DependentUpon>DescriptionPane.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrivateControl\DetailContent.resx">
+      <DependentUpon>DetailContent.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrivateControl\DetailItemContainer.resx">
+      <DependentUpon>DetailItemContainer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrivateControl\DetailPane.resx">
+      <DependentUpon>DetailPane.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrivateControl\PupopDetailPane.resx">
+      <DependentUpon>PupopDetailPane.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="QuestionTemplate\Essay.resx">
+      <DependentUpon>Essay.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="QuestionTemplate\MultiChoice.resx">
+      <DependentUpon>MultiChoice.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="QuestionTemplate\SingleChoice.resx">
+      <DependentUpon>SingleChoice.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="BusinessLogic\Statistics_Calculation_Class_Diagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\addtotemp.image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btnsearch.image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\buttonitem1.image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\buttonitem4.image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\empty.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\expandablebuttonimagecollapse.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\expandablebuttonimageexpand.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Export.Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Import.Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\loading.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\network_lock_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\paste_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\removeformtemp.image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sandglass_unlock_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\searchHistory.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\admin_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btnaddclass.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btnaddcourse.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btnaddstudent.image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btnaddteacher.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btndeleteclass.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btndeletecourse.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btndeletestudent.image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\btndeleteteacher.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\calc_save_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ClassIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\copy.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\course_plan.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\CourseIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Crystal_Clear_action_lock-silver.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\demographic_reload_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Export.Image1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\exportscoreimage.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\folder_zoom_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\forbidden.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\foreign_key_lock_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\graduated_write_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\group_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\icon64_school_info.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Import.Image1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\importscoreimage.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\loading1.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\network_lock_641.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\paste_641.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\People.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\refresh_window_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sandglass_unlock_641.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\searchHistory1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\StudentIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\TeacherIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\TeachingEvaluationTemplate.xls" />
+    <None Include="Resources\user_write_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\warning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\world_upload_64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\新版_教學意見表.xls" />
+    <None Include="Resources\重新整理.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Research\A-Team\ReportHelper\ReportHelper.csproj">
+      <Project>{940285B7-47F3-49E8-A914-1CF8B73F133C}</Project>
+      <Name>ReportHelper</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Agent\Agent.csproj">
+      <Project>{9AEBD730-A5DB-4194-BC0C-2D0AC37F536F}</Project>
+      <Name>Agent</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\BrowserWrapper\BrowserWrapper.vbproj">
+      <Project>{D3F011FF-9EA6-4DFB-845F-49742EC0A623}</Project>
+      <Name>BrowserWrapper</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Mandrill\src\Mandrill\Mandrill.csproj">
+      <Project>{0563EE3C-A65E-4D55-9302-7663C0FE77F7}</Project>
+      <Name>Mandrill</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\loading_gif.gif" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
