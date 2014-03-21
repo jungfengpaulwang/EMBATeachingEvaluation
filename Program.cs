@@ -35,6 +35,7 @@ namespace TeachingEvaluation
             Manager.SyncSchema(new UDT.CaseUsage());
             Manager.SyncSchema(new UDT.MandrillSendLog());
             Manager.SyncSchema(new UDT.AchievingRate());
+            Manager.SyncSchema(new UDT.ReportTemplate());
 
             if (!FISCA.RTContext.IsDiagMode)
                 ServerModule.AutoManaged("https://module.ischool.com.tw/module/140/NTU_EMBA_TeachingEvaluation/udm.xml");        
@@ -67,6 +68,17 @@ namespace TeachingEvaluation
             MotherForm.RibbonBarItems["課程", "評鑑"]["管理"]["評鑑樣版"].Click += delegate
             {
                 (new PrivateControl.PupopDetailPane()).ShowDialog();
+            };
+            #endregion
+
+            #region 課程>評鑑>管理>教學意見表管理
+
+            RoleAclSource.Instance["課程"]["功能按鈕"].Add(new RibbonFeature("Button_TeachingEvaluation_SurveyTeacherReportTemplateManagement", "管理教學意見表樣版"));
+
+            MotherForm.RibbonBarItems["課程", "評鑑"]["管理"]["教學意見表樣版"].Enable = UserAcl.Current["Button_TeachingEvaluation_SurveyTeacherReportTemplateManagement"].Executable;
+            MotherForm.RibbonBarItems["課程", "評鑑"]["管理"]["教學意見表樣版"].Click += delegate
+            {
+                (new Forms.TemplateManagement()).ShowDialog();
             };
             #endregion
 

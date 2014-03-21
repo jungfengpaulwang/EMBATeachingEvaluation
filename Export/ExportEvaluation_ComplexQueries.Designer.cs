@@ -546,7 +546,7 @@
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgvData.DefaultCellStyle = dataGridViewCellStyle2;
             this.dgvData.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvData.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(170)))), ((int)(((byte)(170)))), ((int)(((byte)(170)))));
+            this.dgvData.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(208)))), ((int)(((byte)(215)))), ((int)(((byte)(229)))));
             this.dgvData.Location = new System.Drawing.Point(0, 0);
             this.dgvData.Name = "dgvData";
             this.dgvData.ReadOnly = true;

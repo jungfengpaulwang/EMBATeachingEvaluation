@@ -66,7 +66,9 @@ E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.frm
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.frmHierarchyMangagement.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.frmMandrillApiKey.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.frmStatistics_SingleForm.resources
+E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.ImportReportDocumentTemplate.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.SurveyCreator.resources
+E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.TemplateManagement.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.TestEmailing.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.CS_Template_NoSubject.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Forms.CS_Template_Survey_History.resources
