@@ -131,6 +131,12 @@
     </Compile>
     <Compile Include="Event\DeliverDetailContent.cs" />
     <Compile Include="Event\DeliverDetailContentEvent.cs" />
+    <Compile Include="Export\ExportEvaluation_ComplexQuerie_2014.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Export\ExportEvaluation_ComplexQuerie_2014.Designer.cs">
+      <DependentUpon>ExportEvaluation_ComplexQuerie_2014.cs</DependentUpon>
+    </Compile>
     <Compile Include="Export\ExportEvaluation_Course.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -258,11 +264,23 @@
     <Compile Include="Forms\frmStatistics_SingleForm.Designer.cs">
       <DependentUpon>frmStatistics_SingleForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\ImportReportDocumentTemplate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ImportReportDocumentTemplate.Designer.cs">
+      <DependentUpon>ImportReportDocumentTemplate.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\SurveyCreator.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\SurveyCreator.designer.cs">
       <DependentUpon>SurveyCreator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\TemplateManagement.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\TemplateManagement.Designer.cs">
+      <DependentUpon>TemplateManagement.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\TestEmailing.cs">
       <SubType>Form</SubType>
@@ -345,6 +363,7 @@
     <Compile Include="UDT\Hierarchy.cs" />
     <Compile Include="UDT\MandrillApiKey.cs" />
     <Compile Include="UDT\QHRelation.cs" />
+    <Compile Include="UDT\ReportTemplate.cs" />
     <Compile Include="UDT\Subject.cs" />
     <Compile Include="UDT\TeacherStatistics.cs" />
     <Compile Include="UDT\StatisticsGroup.cs" />
@@ -363,6 +382,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Export\ExportEvaluation_ComplexQueries.resx">
       <DependentUpon>ExportEvaluation_ComplexQueries.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Export\ExportEvaluation_ComplexQuerie_2014.resx">
+      <DependentUpon>ExportEvaluation_ComplexQuerie_2014.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Export\ExportEvaluation_Course.resx">
       <DependentUpon>ExportEvaluation_Course.cs</DependentUpon>
@@ -424,8 +446,14 @@
     <EmbeddedResource Include="Forms\frmStatistics_SingleForm.resx">
       <DependentUpon>frmStatistics_SingleForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\ImportReportDocumentTemplate.resx">
+      <DependentUpon>ImportReportDocumentTemplate.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\SurveyCreator.resx">
       <DependentUpon>SurveyCreator.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\TemplateManagement.resx">
+      <DependentUpon>TemplateManagement.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\TestEmailing.resx">
       <DependentUpon>TestEmailing.cs</DependentUpon>
