@@ -46,6 +46,7 @@ E:\github\NTU_EMBA\TeachingEvaluation\bin\Debug\TeachingEvaluation.pdb
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.csprojResolveAssemblyReference.cache
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.DetailItems.Teaching_EvaluationProgressEnquiry.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Export.ExportEvaluation_ComplexQueries.resources
+E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Export.ExportEvaluation_ComplexQuerie_2014.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Export.ExportEvaluation_Course.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Export.ExportEvaluation_Integrated.resources
 E:\github\NTU_EMBA\TeachingEvaluation\obj\x86\Debug\TeachingEvaluation.Export.ExportEvaluation_Teacher.resources

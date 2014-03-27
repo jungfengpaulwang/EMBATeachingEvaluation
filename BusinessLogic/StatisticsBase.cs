@@ -231,7 +231,7 @@ namespace TeachingEvaluation.BusinessLogic
                 });
                 foreach (Answer answer in Answers)
                 {
-                    sb.Append(string.Format(@"<Answer>{0}</Answer>", answer.Score));
+                    sb.Append(string.Format(@"<Answer>{0}</Answer>", HttpUtility.HtmlEncode(answer.Score)));
                 }
                 sb.Append("</Answers></Question>");
             }

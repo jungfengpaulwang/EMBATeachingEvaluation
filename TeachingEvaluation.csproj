@@ -131,6 +131,8 @@
     </Compile>
     <Compile Include="Event\DeliverDetailContent.cs" />
     <Compile Include="Event\DeliverDetailContentEvent.cs" />
+    <Compile Include="Export\ExcelDocumentMaker.cs" />
+    <Compile Include="Export\ExportEvaluation_ComplexQueries_Handler.cs" />
     <Compile Include="Export\ExportEvaluation_ComplexQuerie_2014.cs">
       <SubType>Form</SubType>
     </Compile>

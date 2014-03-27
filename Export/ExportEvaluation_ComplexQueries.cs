@@ -24,12 +24,25 @@ namespace TeachingEvaluation.Export
         private AccessHelper Access;
         private QueryHelper Query;
 
-        private List<UDT.TeacherStatistics> Statistics;
         private List<CourseRecord> Courses;
         private List<dynamic> Teachers;
         private List<dynamic> Subjects;
+        private List<UDT.TeacherStatistics> Statistics;
 
         private bool form_loaded;
+
+        /// <summary>
+        /// 報表歸檔方式
+        /// 1：一門課程一個檔案
+        /// 2：一門開課一個檔案
+        /// 3：一位教師一個檔案
+        /// </summary>
+        public int FileType { get; set; }
+
+        /// <summary>
+        /// 使用者選取之教學意見統計結果
+        /// </summary>
+        public List<UDT.TeacherStatistics> SelectedStatistics { get; set; }
 
         public ExportEvaluation_ComplexQueries()
         {
@@ -40,6 +53,7 @@ namespace TeachingEvaluation.Export
 
             this.Courses = new List<CourseRecord>();
             this.Statistics = new List<UDT.TeacherStatistics>();
+            this.SelectedStatistics = new List<UDT.TeacherStatistics>();
 
             this.Load += new EventHandler(Form_Load);
             this.dgvData.MouseClick += new MouseEventHandler(dgvData_MouseClick);
@@ -230,6 +244,7 @@ namespace TeachingEvaluation.Export
 
         private void btnExit_Click(object sender, EventArgs e)
         {
+            this.DialogResult = System.Windows.Forms.DialogResult.None;
             this.Close();
         }
 
@@ -340,634 +355,7 @@ namespace TeachingEvaluation.Export
                     MessageBox.Show("沒有資料。");
             }, System.Threading.CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());            
         }
-
-        private string NoToChineseNo(int no)
-        {
-            string[] ChineseNo = new string[] { "〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十" };
-
-            if (no >= 0 && no <= 10)
-                return ChineseNo.ElementAt(no);
-            else
-                return "";
-        }
-
-        private void MakeGroupData(DataTable EnrollRecordTable, UDT.Hierarchy Hierarchy, string WorksheetName, Dictionary<ReportHelper.CellObject, ReportHelper.CellStyle> dicCellStyles)
-        {
-            DataRow pRow = EnrollRecordTable.NewRow();
-            
-            pRow["No"] = NoToChineseNo(Hierarchy.DisplayOrder) + "、" + Hierarchy.Title;
-
-            if (Hierarchy.DisplayOrder == 1)
-            {
-                pRow["Option1AnswerCount"] = "(1)";
-                pRow["Option2AnswerCount"] = "(2)";
-                pRow["Option3AnswerCount"] = "(3)";
-                pRow["Option4AnswerCount"] = "(4)";
-                pRow["Option5AnswerCount"] = "(5)";
-                pRow["Option6AnswerCount"] = "(6)";
-                //pRow["Score"] = "評鑑值";
-            }
-
-            EnrollRecordTable.Rows.Add(pRow);
-
-            CellObject co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-            CellStyle cs = new CellStyle();
-
-            //  題目群組首 Style：標楷體、粗、12號字、水平靠左、垂直靠上
-            cs.SetRowHeight(21.75).SetFontName("標楷體").SetFontSize(12).SetFontBold(true).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top);            
-            dicCellStyles.Add(co, cs);
-
-            //  答案選項標題 Style：TimesNewRoman、10號字、水平置中、垂直靠下
-            for (int i = 2; i <= 7; i++)
-            {
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, i, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetFontName("Times New Roman").SetFontSize(10).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom);
-                dicCellStyles.Add(co, cs);
-            }
-            ////  評鑑值標題
-            //co = new CellObject(EnrollRecordTable.Rows.Count - 1, 8, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-            //cs = new CellStyle();
-            //cs.SetFontName("標楷體").SetFontSize(12).SetFontBold(true).SetFontHorizontalAlignment(HorizontalAlignment.Center).SetFontVerticalAlignment(HorizontalAlignment.Right);
-            //dicCellStyles.Add(co, cs);
-        }
-
-        private void MakeDetailOneData(DataTable EnrollRecordTable, UDT.Hierarchy Hierarchy, List<XElement> xElements, string WorksheetName, Dictionary<ReportHelper.CellObject, ReportHelper.CellStyle> dicCellStyles)
-        {
-            if (Hierarchy.DisplayOrder != 1)
-                return;
-
-            foreach (XElement xElement in xElements)
-            {
-                DataRow pRow = EnrollRecordTable.NewRow();
-
-                pRow["No"] = xElement.Attribute("No").Value + ".";
-                pRow["Content"] = HttpUtility.HtmlDecode(xElement.Attribute("Content").Value);
-                IEnumerable<XElement> Options = xElement.Descendants("Option");
-                if (Options.Count() > 0) Options = Options.OrderBy(x => int.Parse(x.Attribute("No").Value));
-                int j = 0;
-                string question_content = string.Empty;
-                foreach (XElement xOption in Options)
-                {
-                    pRow["Option" + xOption.Attribute("No").Value + "AnswerCount"] = xOption.Attribute("AnswerCount").Value;
-                    question_content += "(" + xOption.Attribute("No").Value + ")" + HttpUtility.HtmlDecode(xOption.Attribute("Content").Value);
-                }
-                //if (question_content.EndsWith("、"))
-                //    question_content = question_content.Remove(question_content.Length - 1, 1);
-                pRow["Content"] += question_content;
-                //pRow["Score"] = xElement.Attribute("Score").Value;
-
-                EnrollRecordTable.Rows.Add(pRow);
-
-                CellObject co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                CellStyle cs = new CellStyle();
-
-                //  題號 Style：Times New Roman、12號字、水平置中、垂直靠上
-                cs.SetRowHeight(35).SetFontName("Times New Roman").SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top);
-                dicCellStyles.Add(co, cs);
-
-                //  題目及答案選項 Style：12號字、水平靠左、垂直靠上
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetFontName("新細明體").SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetAutoFitRow(true);
-                dicCellStyles.Add(co, cs);
-
-                //  答題數
-                j = 2;
-                foreach (XElement xOption in Options)
-                {
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, j, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-                    cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                    dicCellStyles.Add(co, cs);
-                    j++;
-                }
-            }
-        }
-
-        private void MakeDetailTwoData(DataTable EnrollRecordTable, UDT.Hierarchy Hierarchy, List<XElement> xElements, IEnumerable<XElement> xStatisticsGroup, string WorksheetName, Dictionary<ReportHelper.CellObject, ReportHelper.CellStyle> dicCellStyles, Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor, Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor, string SurveyID)
-        {
-            if (Hierarchy.DisplayOrder != 2)
-                return;
-
-            if (xElements.Count == 0) return;
-            
-            IEnumerable<XElement> Options = xElements.ElementAt(0).Descendants("Option");
-            if (Options.Count() > 0) Options = Options.OrderBy(x => int.Parse(x.Attribute("No").Value));
-
-            //  列舉答案選項
-            DataRow pRow = EnrollRecordTable.NewRow();
-            string option_content = string.Empty; 
-            int j = 0;
-            foreach (XElement xOption in Options)
-            {
-                option_content += "(" + xOption.Attribute("No").Value + ")" + HttpUtility.HtmlDecode(xOption.Attribute("Content").Value) + "  ";
-            }
-            pRow["Content"] = option_content;
-            pRow["Score"] = "評鑑值";
-            EnrollRecordTable.Rows.Add(pRow);
-
-            CellObject co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-            CellStyle cs = new CellStyle();
-
-            //  答題選項 Style：粗體、標楷體、12號字、垂直靠下
-            cs.SetRowHeight(18).SetFontBold(true).SetFontName("標楷體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom);
-            dicCellStyles.Add(co, cs);
-
-            co = new CellObject(EnrollRecordTable.Rows.Count - 1, 8, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-            cs = new CellStyle();
-
-            //  評鑑值 Style：粗體、標楷體、12號字、水平置中、垂直靠下
-            cs.SetFontName("標楷體").SetFontBold(true).SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom);
-            dicCellStyles.Add(co, cs);
-
-            //  列舉答案題號
-            pRow = EnrollRecordTable.NewRow();
-            foreach (XElement xOption in Options)
-            {
-                pRow["Option" + xOption.Attribute("No").Value + "AnswerCount"] = "(" + xOption.Attribute("No").Value + ")";
-            }
-            EnrollRecordTable.Rows.Add(pRow);
-
-            //  答案項次 Style：Times New Roman、10號字、水平置中、垂直靠下
-            j = 2;
-            foreach (XElement xOption in Options)
-            {
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, j, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-
-                cs.SetRowHeight(14.25).SetFontName("Times New Roman").SetFontSize(10).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                dicCellStyles.Add(co, cs);
-                j++;
-            }
-
-            //  列舉學生做答
-            foreach (XElement xElement in xElements)
-            {
-                if (xElement.Attribute("IsCase").Value == "是")
-                    continue;
-
-                pRow = EnrollRecordTable.NewRow();
-
-                pRow["No"] = xElement.Attribute("No").Value + ".";
-                pRow["Content"] = HttpUtility.HtmlDecode(xElement.Attribute("Content").Value);
-
-                foreach (XElement xOption in xElement.Descendants("Option"))
-                {
-                    pRow["Option" + xOption.Attribute("No").Value + "AnswerCount"] = xOption.Attribute("AnswerCount").Value;
-                }
-                if (xElement.Attribute("Score") != null)
-                    pRow["Score"] = xElement.Attribute("Score").Value;
-
-                EnrollRecordTable.Rows.Add(pRow);
-
-                //  題號 Style：Times New Roman、12號字、水平置中、垂直靠上
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetRowHeight(16.5).SetFontName("Times New Roman").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                dicCellStyles.Add(co, cs);
-
-                //  題目 Style：新細明體、12號字、水平靠左、垂直靠上
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetFontName("新細明體").SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetAutoFitRow(true); 
-                if (dicQuestionBackgroundColor.ContainsKey(SurveyID))
-                    if (dicQuestionBackgroundColor[SurveyID].ContainsKey(xElement.Attribute("No").Value))
-                        cs.SetFontBackGroundColor(dicQuestionBackgroundColor[SurveyID][xElement.Attribute("No").Value]);
-                dicCellStyles.Add(co, cs);
-
-                for (int zz = 2; zz <= 7; zz++)
-                {
-                    //  答題數 Style：新細明體、12號字、水平置中、垂直靠下
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, zz, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-                    cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                    if (dicQuestionBackgroundColor.ContainsKey(SurveyID))
-                        if (dicQuestionBackgroundColor[SurveyID].ContainsKey(xElement.Attribute("No").Value))
-                            cs.SetFontBackGroundColor(dicQuestionBackgroundColor[SurveyID][xElement.Attribute("No").Value]);
-                    dicCellStyles.Add(co, cs);
-                }
-
-                //  評鑑值 Style：新細明體、12號字、垂直靠下、水平置中
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 8, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                if (dicQuestionBackgroundColor.ContainsKey(SurveyID))
-                    if (dicQuestionBackgroundColor[SurveyID].ContainsKey(xElement.Attribute("No").Value))
-                        cs.SetFontBackGroundColor(dicQuestionBackgroundColor[SurveyID][xElement.Attribute("No").Value]);
-                dicCellStyles.Add(co, cs);
-            }
-            //  平均評鑑值
-            foreach (XElement xElement in xStatisticsGroup)
-            {
-                pRow = EnrollRecordTable.NewRow();
-
-                //pRow["No"] = string.Empty;
-                pRow["Content"] = HttpUtility.HtmlDecode(xElement.Attribute("Content").Value);
-                pRow["Score"] = xElement.Attribute("Score").Value;
-
-                EnrollRecordTable.Rows.Add(pRow);
-
-                //  平均評鑑值標題 Style：粗體、底線、標楷體、12號字、水平靠左、垂直靠上
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetRowHeight(18).SetFontBold(true).SetFontUnderline(true).SetFontName("標楷體").SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top);
-                dicCellStyles.Add(co, cs);
-
-                //  評鑑值 Style：新細明體、12號字、垂直靠下、水平置中
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 8, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                //  評鑑值背景色
-                if (dicEvaluationBackgroundColor.ContainsKey(SurveyID))
-                    if (dicEvaluationBackgroundColor[SurveyID].ContainsKey(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value)))
-                        cs.SetFontBackGroundColor(dicEvaluationBackgroundColor[SurveyID][HttpUtility.HtmlDecode(xElement.Attribute("Content").Value)]);
-                dicCellStyles.Add(co, cs);
-            }
-            if (xElements.Where(x => x.Attribute("IsCase").Value == "是").Count() > 0)
-            {
-                //  空一行
-                pRow = EnrollRecordTable.NewRow();
-                EnrollRecordTable.Rows.Add(pRow);
-
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetRowHeight(9.5);
-                dicCellStyles.Add(co, cs);
-            }
-            //  個案題
-            foreach (XElement xElement in xElements)
-            {
-                if (xElement.Attribute("IsCase").Value == "否")
-                    continue;
-
-                pRow = EnrollRecordTable.NewRow();
-
-                pRow["No"] = xElement.Attribute("No").Value + ".";
-                pRow["Content"] = HttpUtility.HtmlDecode(xElement.Attribute("Content").Value);
-
-                EnrollRecordTable.Rows.Add(pRow);
-
-                //  題號 Style：Times New Roman、12號字、垂直靠上，水平置中
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetRowHeight(18).SetFontName("Times New Roman").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                dicCellStyles.Add(co, cs);
-
-                //  題目 Style：新細明體、12號字、垂直靠上，水平靠左
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetFontName("新細明體").SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetAutoFitRow(true);
-                dicCellStyles.Add(co, cs);
-
-                IEnumerable<XElement> xCases = xElement.Descendants("Case");
-                int z = 0;
-                foreach (XElement xCase in xCases)
-                {
-                    z++;
-
-                    pRow = EnrollRecordTable.NewRow();
-
-                    pRow["No"] = xElement.Attribute("No").Value + "-" + z;
-                    pRow["Content"] = HttpUtility.HtmlDecode(xCase.Attribute("Content").Value);
-                    pRow["Score"] = xCase.Attribute("Score").Value;
-
-                    Options = xCase.Descendants("Option");
-                    if (Options.Count() > 0) Options = Options.OrderBy(x => int.Parse(x.Attribute("No").Value));
-                    foreach (XElement xOption in Options)
-                    {
-                        pRow["Option" + xOption.Attribute("No").Value + "AnswerCount"] = xOption.Attribute("AnswerCount").Value;
-                    }
-                    EnrollRecordTable.Rows.Add(pRow);
-
-                    //  題號 Style：Times New Roman、11號字、垂直靠上，水平置中
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-                    cs.SetFontName("Times New Roman").SetFontSize(11).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                    dicCellStyles.Add(co, cs);
-
-                    //  題目 Style：新細明體、12號字、垂直靠上，水平靠左
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-                    cs.SetFontName("新細明體").SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetAutoFitRow(true);
-                    dicCellStyles.Add(co, cs);
-
-                    j = 2;
-                    foreach (XElement xOption in Options)
-                    {
-                        //  答題數 Style：新細明體、12號字、水平置中、垂直靠下
-                        co = new CellObject(EnrollRecordTable.Rows.Count - 1, j, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                        cs = new CellStyle();
-                        cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                        dicCellStyles.Add(co, cs);
-                        j++;
-                    }
-
-                    //  評鑑值 Style：新細明體、12號字、垂直靠下、水平置中
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, 8, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-                    cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                    dicCellStyles.Add(co, cs);
-                }
-            }
-            //  空一行
-            pRow = EnrollRecordTable.NewRow();
-            EnrollRecordTable.Rows.Add(pRow);
-
-            if (xElements.Where(x => x.Attribute("IsCase").Value == "是").Count() > 0)
-            {
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetRowHeight(11);
-                dicCellStyles.Add(co, cs);
-            }
-            else
-            {
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetRowHeight(17.5);
-                dicCellStyles.Add(co, cs);
-            }
-        }
-
-        private void MakeDetailThreeData(DataTable EnrollRecordTable, UDT.Hierarchy Hierarchy, List<XElement> xElements, string WorksheetName, Dictionary<ReportHelper.CellObject, ReportHelper.CellStyle> dicCellStyles)
-        {
-            if (Hierarchy.DisplayOrder != 3)
-                return;
-
-            foreach (XElement xElement in xElements)
-            {
-                DataRow pRow = EnrollRecordTable.NewRow();
-
-                pRow["No"] = xElement.Attribute("No").Value + ".";
-                pRow["Content"] = HttpUtility.HtmlDecode(xElement.Attribute("Content").Value);
-                IEnumerable<XElement> Options = xElement.Descendants("Option");
-                if (Options.Count() > 0) Options = Options.OrderBy(x => int.Parse(x.Attribute("No").Value));
-                int j = 0;
-                foreach (XElement xOption in Options)
-                {
-                    pRow["Option" + xOption.Attribute("No").Value + "AnswerCount"] = xOption.Attribute("AnswerCount").Value;
-                }
-                if (xElement.Attribute("Score") != null)
-                    pRow["Score"] = xElement.Attribute("Score").Value;
-
-                EnrollRecordTable.Rows.Add(pRow);
-
-                CellObject co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                CellStyle cs = new CellStyle();
-
-                //  題號 Style：Times New Roman、12號字、垂直靠上，水平置中
-                cs.SetRowHeight(18.75).SetFontName("Times New Roman").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                dicCellStyles.Add(co, cs);
-
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-
-                //  題目 Style：新細明體、12號字、垂直靠上，水平靠左
-                cs.SetFontName("新細明體").SetFontSize(12).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetAutoFitRow(true);
-                dicCellStyles.Add(co, cs);
-
-                j = 2;
-                foreach (XElement xOption in Options)
-                {
-                    //  答題數 Style：新細明體、12號字、水平置中、垂直靠下
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, j, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-                    cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                    dicCellStyles.Add(co, cs);
-                    j++;
-                }
-
-                //  評鑑值 Style：新細明體、12號字、垂直靠下、水平置中
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 8, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Bottom).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                dicCellStyles.Add(co, cs);
-            }
-
-            //  空一行            
-            DataRow Row = EnrollRecordTable.NewRow();
-            EnrollRecordTable.Rows.Add(Row);
-
-            CellObject cc = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-            CellStyle ss = new CellStyle();
-            ss.SetRowHeight(11);
-            dicCellStyles.Add(cc, ss);
-        }
-
-        private void MakeDetailFourData(DataTable EnrollRecordTable, UDT.Hierarchy Hierarchy, List<XElement> xElements, string WorksheetName, Dictionary<ReportHelper.CellObject, ReportHelper.CellStyle> dicCellStyles)
-        {
-            if (Hierarchy.DisplayOrder != 4)
-                return;
-
-            foreach (XElement xElement in xElements)
-            {
-                DataRow pRow = EnrollRecordTable.NewRow();
-
-                pRow["No"] = xElement.Attribute("No").Value + ".";
-                pRow["Content"] = HttpUtility.HtmlDecode(xElement.Attribute("Content").Value);
-
-                EnrollRecordTable.Rows.Add(pRow);
-
-                CellObject co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                CellStyle cs = new CellStyle();
-
-                //  題號 Style：Times New Roman、12號字、垂直靠上，水平置中
-                cs.SetRowHeight(16.5).SetFontName("Times New Roman").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                dicCellStyles.Add(co, cs);
-
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-
-                //  題目 Style：粗體、底線、標楷體、12號字、垂直靠上，水平靠左
-                cs.SetFontBold(true).SetFontUnderline(true).SetFontName("標楷體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left);
-                dicCellStyles.Add(co, cs);
-
-                IEnumerable<XElement> xAnswers = xElement.Descendants("Answer");
-                int k = 0;
-                foreach (XElement xElement_Answer in xAnswers)
-                {
-                    if (string.IsNullOrWhiteSpace(xElement_Answer.Value))
-                        continue;
-
-                    DataRow Row = EnrollRecordTable.NewRow();
-                    k++;
-                    Row["No"] = xElement.Attribute("No").Value + "-" + k;
-                    Row["Content"] = HttpUtility.HtmlDecode(xElement_Answer.Value);
-
-                    EnrollRecordTable.Rows.Add(Row);
-
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-
-                    //  回答項次 Style：Times New Roman、11號字、垂直靠上，水平置中
-                    cs.SetFontName("Times New Roman").SetFontSize(11).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Center);
-                    dicCellStyles.Add(co, cs);
-
-                    co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                    cs = new CellStyle();
-
-                    //  回答內容 Style：新細明體、12號字、垂直靠上，水平靠左、自動調整列高
-                    cs.SetFontName("新細明體").SetFontSize(12).SetFontVerticalAlignment(CellStyle.VerticalAlignment.Top).SetFontHorizontalAlignment(CellStyle.HorizontalAlignment.Left).SetAutoFitRow(true).Merge(1, 8);
-                    dicCellStyles.Add(co, cs);
-                }
-
-                //  空一行
-                pRow = EnrollRecordTable.NewRow();
-                EnrollRecordTable.Rows.Add(pRow);
-
-                co = new CellObject(EnrollRecordTable.Rows.Count - 1, 0, EnrollRecordTable.TableName, "DataSection", WorksheetName);
-                cs = new CellStyle();
-                cs.SetRowHeight(16.5);
-                dicCellStyles.Add(co, cs);
-            }
-        }
-
-        private void MakeTableColumn(DataTable EnrollRecordTable)
-        {
-            EnrollRecordTable.Columns.Add("No");
-            EnrollRecordTable.Columns.Add("Content");
-            EnrollRecordTable.Columns.Add("Option1AnswerCount");
-            EnrollRecordTable.Columns.Add("Option2AnswerCount");
-            EnrollRecordTable.Columns.Add("Option3AnswerCount");
-            EnrollRecordTable.Columns.Add("Option4AnswerCount");
-            EnrollRecordTable.Columns.Add("Option5AnswerCount");
-            EnrollRecordTable.Columns.Add("Option6AnswerCount");
-            EnrollRecordTable.Columns.Add("Score");
-        }
-
-        private Workbook MakeExcelDocument(UDT.TeacherStatistics Statistic, Dictionary<string, UDT.Hierarchy> dicQuestionHierarchies)
-        {
-            Dictionary<UDT.Hierarchy, List<XElement>> dicHierarchyQuestions = new Dictionary<UDT.Hierarchy, List<XElement>>();
-            List<UDT.StatisticsGroup> StatisticsGroups = Access.Select<UDT.StatisticsGroup>();
-            Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
-            Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
-            StatisticsGroups.ForEach((x) =>
-            {
-                XDocument xxDocument = XDocument.Parse(x.DisplayOrderList, LoadOptions.None);
-                List<XElement> xElements = xxDocument.Descendants("Question").ToList();
-                if (!string.IsNullOrEmpty(x.QuestionBgColor) && xElements.Count() > 0)
-                {
-                    foreach (string display_order in xElements.Select(y => y.Attribute("DisplayOrder").Value))
-                    {
-                        if (!dicQuestionBackgroundColor.ContainsKey(x.SurveyID.ToString()))
-                            dicQuestionBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
-
-                        if (!dicQuestionBackgroundColor[x.SurveyID.ToString()].ContainsKey(display_order))
-                            dicQuestionBackgroundColor[x.SurveyID.ToString()].Add(display_order, Color.FromName(x.QuestionBgColor));
-                        else
-                        {
-                            if (Color.FromName(x.QuestionBgColor) != Color.White)
-                                dicQuestionBackgroundColor[x.SurveyID.ToString()][display_order] = Color.FromName(x.QuestionBgColor);
-                        }
-                    }
-                }
-                if (!dicEvaluationBackgroundColor.ContainsKey(x.SurveyID.ToString()))
-                    dicEvaluationBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
-
-                if (!dicEvaluationBackgroundColor[x.SurveyID.ToString()].ContainsKey(x.Name))
-                    dicEvaluationBackgroundColor[x.SurveyID.ToString()].Add(x.Name, Color.FromName(x.EvaluationBgColor));
-            });
-            
-            XDocument xDocument = XDocument.Parse(Statistic.StatisticsList, LoadOptions.None);
-            XElement xStatistics = xDocument.Element("Statistics");
-
-            #region 表頭
-
-            DataSet dataSet_PageHeader = new DataSet("PageHeader");
-
-            string CSAttendCount = xStatistics.Attribute("CSAttendCount").Value;    //  修課人數
-            string FeedBackCount = xStatistics.Attribute("FeedBackCount").Value;    //  填答人數
-            string TeacherName = HttpUtility.HtmlDecode(xStatistics.Attribute("TeacherName").Value);            //  授課教師
-            string CourseName = HttpUtility.HtmlDecode(xStatistics.Attribute("CourseName").Value);              //  開課
-            string SubjectName = HttpUtility.HtmlDecode(xStatistics.Attribute("SubjectName").Value);            //  課程
-            string ClassName = xStatistics.Attribute("ClassName").Value;                    //  班次
-            string SubjectCode = xStatistics.Attribute("SubjectCode").Value;                //  課程識別碼
-            string NewSubjectCode = xStatistics.Attribute("NewSubjectCode").Value;  //  課號
-            string SchoolYear = xStatistics.Attribute("SchoolYear").Value;                      //  學年度
-            string Semester = xStatistics.Attribute("Semester").Value;                              //  學期
-            string CourseID = xStatistics.Attribute("CourseID").Value;                              //  開課系統編號
-            string TeacherID = xStatistics.Attribute("TeacherID").Value;                            //  授課教師系統編號
-            string SurveyDate = xStatistics.Attribute("SurveyDate").Value;                      //  問卷調查日期
-            string SurveyID = xStatistics.Attribute("SurveyID").Value;                              //  問卷系統編號
-
-            dataSet_PageHeader.Tables.Add(CSAttendCount.ToDataTable("CSAttendCount", "CSAttendCount"));
-            dataSet_PageHeader.Tables.Add(FeedBackCount.ToDataTable("FeedBackCount", "FeedBackCount"));
-            dataSet_PageHeader.Tables.Add(TeacherName.ToDataTable("TeacherName", "TeacherName"));
-            dataSet_PageHeader.Tables.Add(CourseName.ToDataTable("CourseName", "CourseName"));
-            dataSet_PageHeader.Tables.Add(SubjectName.ToDataTable("SubjectName", "SubjectName"));
-            dataSet_PageHeader.Tables.Add(ClassName.ToDataTable("ClassName", "ClassName"));
-            dataSet_PageHeader.Tables.Add(SubjectCode.ToDataTable("SubjectCode", "SubjectCode"));
-            dataSet_PageHeader.Tables.Add(NewSubjectCode.ToDataTable("NewSubjectCode", "NewSubjectCode"));
-            dataSet_PageHeader.Tables.Add(SchoolYear.ToDataTable("SchoolYear", "SchoolYear"));
-            dataSet_PageHeader.Tables.Add(DataItems.SemesterItem.GetSemesterByCode(xStatistics.Attribute("Semester").Value).Name.ToDataTable("Semester", "Semester"));
-            dataSet_PageHeader.Tables.Add(SurveyDate.ToDataTable("SurveyDate", "SurveyDate"));
-
-            #endregion
-
-            #region 群組化題目並排序
-
-            //  將所有題目加入「標題」群組
-            foreach (XElement xElement in xDocument.Descendants("Question"))
-            {
-                string question_id = xElement.Attribute("ID").Value;
-                if (dicQuestionHierarchies.ContainsKey(question_id))
-                {
-                    UDT.Hierarchy Hierarchy = dicQuestionHierarchies[question_id];
-                    if (!dicHierarchyQuestions.ContainsKey(Hierarchy))
-                        dicHierarchyQuestions.Add(Hierarchy, new List<XElement>());
-
-                    dicHierarchyQuestions[Hierarchy].Add(xElement);
-                }
-            }
-            
-            //  依照標題之顯示順序及題號排序
-            Dictionary<UDT.Hierarchy, List<XElement>> dicOrderedHierarchyQuestions = new Dictionary<UDT.Hierarchy, List<XElement>>();
-            foreach(KeyValuePair<UDT.Hierarchy, List<XElement>> kv in dicHierarchyQuestions.OrderBy(x=>x.Key.DisplayOrder))
-            {
-                if (!dicOrderedHierarchyQuestions.ContainsKey(kv.Key))
-                    dicOrderedHierarchyQuestions.Add(kv.Key, new List<XElement>());
-
-                dicOrderedHierarchyQuestions[kv.Key].AddRange(kv.Value.OrderBy(x => int.Parse(x.Attribute("No").Value)));
-            }
-
-            #endregion
-
-            string report_name = SchoolYear + "-" + Semester + "-" + CourseName + "-" + TeacherName;
-            Dictionary<ReportHelper.CellObject, ReportHelper.CellStyle> dicCellStyles = new Dictionary<CellObject, CellStyle>();
-
-            #region 報表資料的部份
-
-            //  先產生資料容器
-            DataTable EnrollRecordTable = new DataTable("NoneSelfAssessmentContent");
-            this.MakeTableColumn(EnrollRecordTable);
-
-            //  接著將資料倒進容器中
-            foreach (UDT.Hierarchy Hierarchy in dicOrderedHierarchyQuestions.Keys)
-            {
-                //  群組首
-                this.MakeGroupData(EnrollRecordTable, Hierarchy, report_name, dicCellStyles);
-
-                //  題目及答案
-                this.MakeDetailOneData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], report_name, dicCellStyles);
-                this.MakeDetailTwoData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], xDocument.Descendants("StatisticsGroup"), report_name, dicCellStyles, dicQuestionBackgroundColor, dicEvaluationBackgroundColor, SurveyID);
-                this.MakeDetailThreeData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], report_name, dicCellStyles);
-                this.MakeDetailFourData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], report_name, dicCellStyles);
-            }
-
-            #endregion
-
-            DataSet dataSet_DataSection = new DataSet("DataSection");
-            dataSet_DataSection.Tables.Add(EnrollRecordTable);
-
-            Dictionary<string, List<DataSet>> dicDataSources = new Dictionary<string, List<DataSet>>();
-            dicDataSources.Add(report_name, new List<DataSet>() { dataSet_PageHeader, dataSet_DataSection });
-            MemoryStream ms = new MemoryStream(Properties.Resources.新版_教學意見表);
-            Workbook wb = Report.Produce(dicDataSources, ms, false, dicCellStyles);
-
-            return wb;
-        }
-
+        
         private void btnExport_Click(object sender, EventArgs e)
         {
             if (this.dgvData.SelectedRows.Count == 0)
@@ -980,76 +368,138 @@ namespace TeachingEvaluation.Export
             this.btnQuery.Enabled = false;
             this.btnExport.Enabled = false;
             this.btnExit.Enabled = false;
-            string file_name = string.Empty;
-            int option = 3;
-            if (this.radioSubject.Checked)
-                option = 1;
-            if (this.radioCourse.Checked)
-                option = 2;
-            Workbook wb;
-            Dictionary<string, List<UDT.TeacherStatistics>> dicStatistics = new Dictionary<string, List<UDT.TeacherStatistics>>();
-            Dictionary<string, Workbook> dicFiles = new Dictionary<string, Workbook>();
-            List<UDT.TeacherStatistics> Statistics = new List<UDT.TeacherStatistics>();
-            this.dgvData.SelectedRows.Cast<DataGridViewRow>().ToList().ForEach(x => Statistics.Add(x.Tag as UDT.TeacherStatistics));
 
-            Task task = Task.Factory.StartNew(() =>
+            this.FileType = 3;
+            if (this.radioSubject.Checked) this.FileType = 1;
+            if (this.radioCourse.Checked) this.FileType = 2;
+
+            this.SelectedStatistics.Clear();
+            this.dgvData.SelectedRows.Cast<DataGridViewRow>().ToList().ForEach(x => this.SelectedStatistics.Add(x.Tag as UDT.TeacherStatistics));
+
+            //  驗證評鑑樣版是否對應教學意見調查表樣版
+            Task<Dictionary<string, Workbook>> task = Task<Dictionary<string, Workbook>>.Factory.StartNew(() =>
             {
-                List<UDT.TeacherStatistics> SelectedStatistics = new List<UDT.TeacherStatistics>();
+                DataTable dataTable = Query.Select(@"select aSurvey.ref_course_id, aSurvey.ref_teacher_id, survey.name as survey_name, rt.ref_survey_id as survey_id from $ischool.emba.teaching_evaluation.survey as survey 
+join $ischool.emba.teaching_evaluation.assigned_survey as aSurvey on survey.uid=aSurvey.ref_survey_id
+left join $ischool.emba.teaching_evaluation.report_template as rt on aSurvey.ref_survey_id=rt.ref_survey_id");
+                if (dataTable.Rows.Count == 0)
+                    throw new Exception("請先設定「教學意見表樣版」。");
+                Dictionary<string, Dictionary<string, string>> dicReportTemplates = new Dictionary<string, Dictionary<string, string>>();
+                dataTable.Rows.Cast<DataRow>().ToList().ForEach(x =>
+                {
+                    string key = x["ref_course_id"] + "-" + x["ref_teacher_id"];
+                    string survey_id = x["survey_id"] + "";
+                    string survey_name = x["survey_name"] + "";
+
+                    if (!dicReportTemplates.ContainsKey(key))
+                        dicReportTemplates.Add(key, new Dictionary<string, string>());
+
+                    dicReportTemplates[key].Add(survey_id, survey_name);
+                });
+
+                List<string> Empty_Survey = new List<string>();
+                this.SelectedStatistics.ForEach((x) =>
+                {
+                    string key = x.CourseID + "-" + x.TeacherID;
+                    if (String.IsNullOrEmpty(dicReportTemplates[key].ElementAt(0).Key))
+                        Empty_Survey.Add(dicReportTemplates[key].ElementAt(0).Value);
+                });
+                if (Empty_Survey.Count > 0)
+                {
+                    throw new Exception(string.Format("請先設定下列評鑑之教學意見表樣版：\n\n{0}", string.Join("\n", Empty_Survey.Distinct())));
+                }
+                
+                //  統計群組、背景顏色
+                List<UDT.StatisticsGroup> StatisticsGroups = Access.Select<UDT.StatisticsGroup>();
+                Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
+                Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
+                StatisticsGroups.ForEach((x) =>
+                {
+                    XDocument xxDocument = XDocument.Parse(x.DisplayOrderList, LoadOptions.None);
+                    List<XElement> xElements = xxDocument.Descendants("Question").ToList();
+                    if (!string.IsNullOrEmpty(x.QuestionBgColor) && xElements.Count() > 0)
+                    {
+                        foreach (string display_order in xElements.Select(y => y.Attribute("DisplayOrder").Value))
+                        {
+                            if (!dicQuestionBackgroundColor.ContainsKey(x.SurveyID.ToString()))
+                                dicQuestionBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
+
+                            if (!dicQuestionBackgroundColor[x.SurveyID.ToString()].ContainsKey(display_order))
+                                dicQuestionBackgroundColor[x.SurveyID.ToString()].Add(display_order, Color.FromName(x.QuestionBgColor));
+                            else
+                            {
+                                if (Color.FromName(x.QuestionBgColor) != Color.White)
+                                    dicQuestionBackgroundColor[x.SurveyID.ToString()][display_order] = Color.FromName(x.QuestionBgColor);
+                            }
+                        }
+                    }
+                    if (!dicEvaluationBackgroundColor.ContainsKey(x.SurveyID.ToString()))
+                        dicEvaluationBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
+
+                    if (!dicEvaluationBackgroundColor[x.SurveyID.ToString()].ContainsKey(HttpUtility.HtmlDecode(x.Name)))
+                        dicEvaluationBackgroundColor[x.SurveyID.ToString()].Add(HttpUtility.HtmlDecode(x.Name), Color.FromName(x.EvaluationBgColor));
+                });
+
                 List<UDT.QHRelation> QHRelations = Access.Select<UDT.QHRelation>();
                 List<UDT.Hierarchy> Hierarchies = Access.Select<UDT.Hierarchy>();
-                Dictionary<string, UDT.Hierarchy> dicHierarchies = new Dictionary<string, UDT.Hierarchy>();
-                if (Hierarchies.Count > 0)
-                    dicHierarchies = Hierarchies.ToDictionary(x => x.Title);
-                Dictionary<string, UDT.Hierarchy> dicQuestionHierarchies = new Dictionary<string, UDT.Hierarchy>();
-                foreach (UDT.QHRelation QHRelation in QHRelations)
-                {
-                    if (dicHierarchies.ContainsKey(QHRelation.HierarchyTitle))
-                        dicQuestionHierarchies.Add(QHRelation.QuestionID.ToString(), dicHierarchies[QHRelation.HierarchyTitle]);
-                }
-                //key = SchoolYear + "-" + Semester + "-" + SubjectName;
-                wb = new Workbook();
-                Statistics.ForEach((x) =>
+                Dictionary<string, Workbook> dicSurveyIDs = new Dictionary<string, Workbook>();
+                Dictionary<string, List<Workbook>> dicWorkbooks = new Dictionary<string, List<Workbook>>();
+
+                this.SelectedStatistics.ForEach((x) =>
                 {
                     XDocument xDocument = XDocument.Parse(x.StatisticsList, LoadOptions.None);
                     XElement xStatistics = xDocument.Element("Statistics");
+                    string SurveyID = xStatistics.Attribute("SurveyID").Value;
 
-                    string TeacherName = HttpUtility.HtmlDecode(xStatistics.Attribute("TeacherName").Value);            // 授課教師
-                    string CourseName = HttpUtility.HtmlDecode(xStatistics.Attribute("CourseName").Value);              //  開課
-                    string SubjectName = HttpUtility.HtmlDecode(xStatistics.Attribute("SubjectName").Value);            //   課程
-                    string SchoolYear = xStatistics.Attribute("SchoolYear").Value;                   //   學年度
-                    string Semester = xStatistics.Attribute("Semester").Value;                         //    學期
-
-                    if (option == 1)
-                        file_name = SubjectName + "-課程教學評鑑統計表";
-                    if (option == 2)
-                        file_name = CourseName + "-開課教學評鑑統計表";
-                    if (option == 3)
-                        file_name = TeacherName + "-授課教師教學評鑑統計表";
-
-                    if (!dicStatistics.ContainsKey(file_name))
-                        dicStatistics.Add(file_name, new List<UDT.TeacherStatistics>());
-
-                    dicStatistics[file_name].Add(x);
-                });
-                foreach (string key in dicStatistics.Keys)
-                {
-                    Workbook new_workbook = new Workbook();
-                    //new_workbook.Worksheets.Cast<Worksheet>().ToList().ForEach(x => new_workbook.Worksheets.RemoveAt(x.Index));
-                    foreach (UDT.TeacherStatistics Statistic in dicStatistics[key])
+                    if (!dicSurveyIDs.ContainsKey(SurveyID))
+                        dicSurveyIDs.Add(SurveyID, this.GetSurveyTemplate(SurveyID));
+                    ExcelDocumentMaker excelDocumentMaker = new ExcelDocumentMaker(dicEvaluationBackgroundColor, dicQuestionBackgroundColor, QHRelations, Hierarchies, x, dicSurveyIDs[SurveyID]);
+                    Workbook wb = excelDocumentMaker.Produce();
+                    if (wb != null)
                     {
-                        wb = MakeExcelDocument(Statistic, dicQuestionHierarchies);
-                        new_workbook.Combine(wb);
-                        wb.Worksheets.Cast<Worksheet>().ToList().ForEach(x => wb.Worksheets.RemoveAt(x.Index));
+                        string key = string.Empty;
+                        if (this.FileType == 1)
+                            key = excelDocumentMaker.SubjectName + "-課程教學評鑑統計表";
+                        if (this.FileType == 2)
+                            key = excelDocumentMaker.CourseName + "-開課教學評鑑統計表";
+                        if (this.FileType == 3)
+                            key = excelDocumentMaker.TeacherName + "-授課教師教學評鑑統計表";
+
+                        if (!dicWorkbooks.ContainsKey(key))
+                            dicWorkbooks.Add(key, new List<Workbook>());
+
+                        dicWorkbooks[key].Add(wb);
                     }
-                    new_workbook.Worksheets.Cast<Worksheet>().ToList().ForEach((x) => 
-                    {
-                        if (x.Cells.MaxDataColumn == 0 && x.Cells.MaxDataRow == 0)
-                            new_workbook.Worksheets.RemoveAt(x.Index);
-                    });
-                    dicFiles.Add(key, new_workbook);
-                }
-            });
+                });
 
+                Dictionary<string, Workbook> dicFiles = new Dictionary<string, Workbook>();
+                try
+                {
+                    foreach (string key in dicWorkbooks.Keys)
+                    {
+                        Workbook new_workbook = new Workbook();
+                        foreach (Workbook wb in dicWorkbooks[key])
+                        {
+                            new_workbook.Combine(wb);
+                            wb.Worksheets.Cast<Worksheet>().ToList().ForEach(x => wb.Worksheets.RemoveAt(x.Index));
+                        }
+                        new_workbook.Worksheets.Cast<Worksheet>().ToList().ForEach((x) =>
+                        {
+                            if (x.Cells.MaxDataColumn == 0 && x.Cells.MaxDataRow == 0)
+                                new_workbook.Worksheets.RemoveAt(x.Index);
+                        });
+                        dicFiles.Add(key, new_workbook);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+                if (dicFiles.Count == 0)
+                    throw new Exception("無檔案產生。");
+
+                return dicFiles;
+            });
             task.ContinueWith((x) =>
             {
                 this.circularProgress.IsRunning = false;
@@ -1063,9 +513,7 @@ namespace TeachingEvaluation.Export
                     MessageBox.Show(x.Exception.InnerException.Message);
                     return;
                 }
-
                 string filePath = string.Empty;
-
                 System.Windows.Forms.FolderBrowserDialog folder = new FolderBrowserDialog();
                 do
                 {
@@ -1076,13 +524,13 @@ namespace TeachingEvaluation.Export
                         return;
                 } while (!System.IO.Directory.Exists(filePath));
 
-                foreach (string fileName in dicFiles.Keys)
+                foreach (string fileName in x.Result.Keys)
                 {
                     try
                     {
                         //  檔案名稱不能有下列字元<>:"/\|?*
                         string new_fileName = fileName.Replace("：", "꞉").Replace(":", "꞉").Replace("/", "⁄").Replace("／", "⁄").Replace(@"\", "∖").Replace("＼", "∖").Replace("?", "_").Replace("？", "_").Replace("*", "✻").Replace("＊", "✻").Replace("<", "〈").Replace("＜", "〈").Replace(">", "〉").Replace("＞", "〉").Replace("\"", "''").Replace("”", "''").Replace("|", "ㅣ").Replace("｜", "ㅣ");
-                        dicFiles[fileName].Save(Path.Combine(filePath, new_fileName + ".xls"), FileFormatType.Excel2003);
+                        x.Result[fileName].Save(Path.Combine(filePath, new_fileName + ".xls"), FileFormatType.Excel2003);
                         System.Diagnostics.Process.Start(filePath);
                     }
                     catch
@@ -1091,6 +539,19 @@ namespace TeachingEvaluation.Export
                     }
                 }
             }, System.Threading.CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        private Workbook GetSurveyTemplate(string SurveyID)
+        {
+            List<UDT.ReportTemplate> ReportTemplates = this.Access.Select<UDT.ReportTemplate>(string.Format("ref_survey_id = {0}", SurveyID));
+
+            byte[] _buffer = Convert.FromBase64String(ReportTemplates.ElementAt(0).Template);
+            MemoryStream template = new MemoryStream(_buffer);
+
+            Workbook wb = new Workbook();
+            wb.Open(template);
+
+            return wb;
         }
 
         private void nudSchoolYear_ValueChanged(object sender, EventArgs e)

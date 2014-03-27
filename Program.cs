@@ -259,6 +259,7 @@ namespace TeachingEvaluation
             MotherForm.RibbonBarItems["課程", "評鑑"]["報表"]["列印教師評鑑值"].Click += delegate
             {
                 (new Export.ExportEvaluation_ComplexQueries()).ShowDialog();
+                //(new Export.ExportEvaluation_ComplexQueries_Handler()).Execute();
             };
             #endregion         
             

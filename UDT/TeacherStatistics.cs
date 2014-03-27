@@ -37,40 +37,35 @@ namespace TeachingEvaluation.UDT
         /// 評鑑統計值
         /// 自評題的答案選項要放在題目後
         /// 個案題要列舉個案名稱
-        /// <Statistics CSAttendCount='53' FeedBackCount='45' TeacherName='' CourseName='' SubjectName='' SubjectCode='' NewSubjectCode='' SchoolYear='' Semester=''>
-        ///     <Question No='1~2' Content='本門課我的出席狀況是' Type='單選題' IsSelfAssessment='是' IsCase='否' Score='4.58'>
-        ///         <Option No='1' Content='從不缺課' AnswerCount='6' />
-        ///         <Option No='2' Content='缺課1~2次' AnswerCount='12' />
-        ///         <Option No='3' Content='缺課3~4次' AnswerCount='5' />
-        ///         <Option No='4' Content='缺課5次以上' AnswerCount='8' />
-        ///     </Question>
-        ///     <Question No='1~19' Content='本課程的內容和學習目標十分明確。' Type='單選題' IsSelfAssessment='否' IsCase='否' Score='4.58'>
-        ///         <Option No='1' Content='非常不同意' AnswerCount='6' />
-        ///         <Option No='2' Content='不同意' AnswerCount='12' />
-        ///         <Option No='3' Content='普通' AnswerCount='5' />
-        ///         <Option No='4' Content='同意' AnswerCount='8' />
-        ///         <Option No='5' Content='非常同意' AnswerCount='16' />
-        ///     </Question>
-        ///     <Question No='20' 題目='以下個案能有效地提升學習效果' Type='單選題' IsSelfAssessment='否' IsCase='是'>
-        ///         <Case ID="123" Content='我是個案1號' Score='4.58'>
-        ///             <Option No='1' Content='非常不同意' AnswerCount='6' />
-        ///             <Option No='2' Content='不同意' AnswerCount='12' />
-        ///             <Option No='3' Content='普通' AnswerCount='5' />
-        ///             <Option No='4' Content='同意' AnswerCount='8' />
-        ///             <Option No='5' Content='非常同意' AnswerCount='16' />
-        ///         </Case>
-        ///         <Case ID="456" Content='我是個案1號' Score='4.58'>
-        ///             <Option No='1' Content='非常不同意' AnswerCount='6' />
-        ///             <Option No='2' Content='不同意' AnswerCount='12' />
-        ///             <Option No='3' Content='普通' AnswerCount='5' />
-        ///             <Option No='4' Content='同意' AnswerCount='8' />
-        ///             <Option No='5' Content='非常同意' AnswerCount='16' />
-        ///         </Case>
-        ///     </Question>
-        ///     <Question No='21~23' Content='本課程給您最大的收穫是什麼？' Type='問答題' IsSelfAssessment='否' IsCase='否'>
-        ///         <Answers>
-        ///             <Answer CaseID="" Score="增廣見聞。"/>
-        ///         </Answers>
+        ///      <Statistics CSAttendCount="53" FeedBackCount="31" TeacherName="李存修" CourseName="財務管理 03" SubjectName="財務管理" SubjectCode="740 M3050" NewSubjectCode="EMBA7006" SchoolYear="102" Semester="1" ClassName="03" CourseID="614" SubjectID="16559" TeacherID="334" SurveyDate="2013/12/5~2013/12/11" SurveyID="100260">    
+        ///      <Question ID="100261" No="1" Content="本門課我的出席狀況是" Type="單選題" IsSelfAssessment="是" IsCase="否" Score="1.23">
+        ///          <Option ID="162628" No="1" Content="從不缺課" AnswerCount="24" />
+        ///         <Option ID="162629" No="2" Content="缺課1~2次" AnswerCount="7" />
+        ///          <Option ID="162630" No="3" Content="缺課3~4次" AnswerCount="0" />
+        ///          <Option ID="162631" No="4" Content="缺課5次以上" AnswerCount="0" />
+        ///      </Question>
+        ///      <Question ID="122113" No="2" Content="教師對本課程是否安排課後學習活動(可複選):" Type="複選題" IsSelfAssessment="是" IsCase="否" Score="2.45">
+        ///        <Option ID="122784" No="1" Content="閱讀資料" AnswerCount="13" />
+        ///        <Option ID="122785" No="2" Content="繳交心得報告" AnswerCount="16" />
+        ///        <Option ID="122786" No="3" Content="寫報告" AnswerCount="25" />
+        ///        <Option ID="122787" No="4" Content="準備口頭報告" AnswerCount="8" />
+        ///        <Option ID="122788" No="5" Content="其他" AnswerCount="0" />
+        ///        <Option ID="122789" No="6" Content="無特殊安排" AnswerCount="0" />
+        ///      </Question>
+        ///      <Question ID="104105" No="14" Content="以下個案能有效地提升學習效果:" Type="單選題" IsSelfAssessment="否" IsCase="是">
+        ///           <Case ID="119256" Content="Continental Carriers" Score="4.19">
+        ///               <Option ID="122532" No="1" Content="非常不同意" AnswerCount="0" />
+        ///               <Option ID="122533" No="2" Content="不同意" AnswerCount="0" />
+        ///               <Option ID="122534" No="3" Content="普通" AnswerCount="3" />
+        ///               <Option ID="122535" No="4" Content="同意" AnswerCount="19" />
+        ///               <Option ID="122536" No="5" Content="非常同意" AnswerCount="9" />
+        ///           </Case>
+        ///      </Question>
+        ///      <Question ID="104137" No="1" Content="本課程對我而言，最大的收穫是？" Type="問答題" IsSelfAssessment="否" IsCase="否">
+        ///          <Answers>
+        ///               <Answer>更了解財經知識</Answer>
+        ///               <Answer></Answer>
+        ///          <Answers>
         ///     </Question>
         ///     <StatisticsGroup Content='第1～19題平均評鑑值' Score='4.56' />
         ///     <StatisticsGroup Content='第14、19題平均評鑑值' Score='4.33' />

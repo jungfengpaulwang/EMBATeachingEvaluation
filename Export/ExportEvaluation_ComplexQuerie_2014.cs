@@ -835,45 +835,16 @@ namespace TeachingEvaluation.Export
             EnrollRecordTable.Columns.Add("Score");
         }
 
-        private Workbook MakeExcelDocument(UDT.TeacherStatistics Statistic, Dictionary<string, UDT.Hierarchy> dicQuestionHierarchies)
+        private Workbook MakeExcelDocument(UDT.TeacherStatistics Statistic, Dictionary<string, UDT.Hierarchy> dicQuestionHierarchies, Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor, Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor)
         {
             Dictionary<UDT.Hierarchy, List<XElement>> dicHierarchyQuestions = new Dictionary<UDT.Hierarchy, List<XElement>>();
-            List<UDT.StatisticsGroup> StatisticsGroups = Access.Select<UDT.StatisticsGroup>();
-            Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
-            Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
-            StatisticsGroups.ForEach((x) =>
-            {
-                XDocument xxDocument = XDocument.Parse(x.DisplayOrderList, LoadOptions.None);
-                List<XElement> xElements = xxDocument.Descendants("Question").ToList();
-                if (!string.IsNullOrEmpty(x.QuestionBgColor) && xElements.Count() > 0)
-                {
-                    foreach (string display_order in xElements.Select(y => y.Attribute("DisplayOrder").Value))
-                    {
-                        if (!dicQuestionBackgroundColor.ContainsKey(x.SurveyID.ToString()))
-                            dicQuestionBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
-
-                        if (!dicQuestionBackgroundColor[x.SurveyID.ToString()].ContainsKey(display_order))
-                            dicQuestionBackgroundColor[x.SurveyID.ToString()].Add(display_order, Color.FromName(x.QuestionBgColor));
-                        else
-                        {
-                            if (Color.FromName(x.QuestionBgColor) != Color.White)
-                                dicQuestionBackgroundColor[x.SurveyID.ToString()][display_order] = Color.FromName(x.QuestionBgColor);
-                        }
-                    }
-                }
-                if (!dicEvaluationBackgroundColor.ContainsKey(x.SurveyID.ToString()))
-                    dicEvaluationBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
-
-                if (!dicEvaluationBackgroundColor[x.SurveyID.ToString()].ContainsKey(x.Name))
-                    dicEvaluationBackgroundColor[x.SurveyID.ToString()].Add(x.Name, Color.FromName(x.EvaluationBgColor));
-            });
             
             XDocument xDocument = XDocument.Parse(Statistic.StatisticsList, LoadOptions.None);
             XElement xStatistics = xDocument.Element("Statistics");
 
             #region 表頭
 
-            DataSet dataSet_PageHeader = new DataSet("PageHeader");
+            DataSet dataSet_PageHeader = new DataSet("報表標題");
 
             string CSAttendCount = xStatistics.Attribute("CSAttendCount").Value;    //  修課人數
             string FeedBackCount = xStatistics.Attribute("FeedBackCount").Value;    //  填答人數
@@ -985,14 +956,13 @@ namespace TeachingEvaluation.Export
                 option = 1;
             if (this.radioCourse.Checked)
                 option = 2;
-            Workbook wb;
-            Dictionary<string, List<UDT.TeacherStatistics>> dicStatistics = new Dictionary<string, List<UDT.TeacherStatistics>>();
-            Dictionary<string, Workbook> dicFiles = new Dictionary<string, Workbook>();
             List<UDT.TeacherStatistics> Statistics = new List<UDT.TeacherStatistics>();
             this.dgvData.SelectedRows.Cast<DataGridViewRow>().ToList().ForEach(x => Statistics.Add(x.Tag as UDT.TeacherStatistics));
 
-            Task task = Task.Factory.StartNew(() =>
+            Task<Dictionary<string, Workbook>> task = Task<Dictionary<string, Workbook>>.Factory.StartNew(() =>
             {
+                Dictionary<string, List<UDT.TeacherStatistics>> dicStatistics = new Dictionary<string, List<UDT.TeacherStatistics>>();
+                Dictionary<string, Workbook> dicFiles = new Dictionary<string, Workbook>();
                 List<UDT.TeacherStatistics> SelectedStatistics = new List<UDT.TeacherStatistics>();
                 List<UDT.QHRelation> QHRelations = Access.Select<UDT.QHRelation>();
                 List<UDT.Hierarchy> Hierarchies = Access.Select<UDT.Hierarchy>();
@@ -1006,17 +976,39 @@ namespace TeachingEvaluation.Export
                         dicQuestionHierarchies.Add(QHRelation.QuestionID.ToString(), dicHierarchies[QHRelation.HierarchyTitle]);
                 }
                 //key = SchoolYear + "-" + Semester + "-" + SubjectName;
-                wb = new Workbook();
+                DataTable dataTable = Query.Select(@"select aSurvey.ref_course_id, aSurvey.ref_teacher_id, survey.name as survey_name, rt.ref_survey_id as survey_id from $ischool.emba.teaching_evaluation.survey as survey 
+join $ischool.emba.teaching_evaluation.assigned_survey as aSurvey on survey.uid=aSurvey.ref_survey_id
+left join $ischool.emba.teaching_evaluation.report_template as rt on aSurvey.ref_survey_id=rt.ref_survey_id");
+                if (dataTable.Rows.Count == 0)
+                    throw new Exception("請先設定「教學意見表樣版」。");
+                Dictionary<string, Dictionary<string, string>> dicReportTemplates = new Dictionary<string, Dictionary<string, string>>();
+                dataTable.Rows.Cast<DataRow>().ToList().ForEach(x => 
+                {
+                    string key = x["ref_course_id"] + "-" + x["ref_teacher_id"];
+                    string survey_id = x["survey_id"] + "";
+                    string survey_name = x["survey_name"] + "";
+
+                    if (!dicReportTemplates.ContainsKey(key))
+                        dicReportTemplates.Add(key, new Dictionary<string, string>());
+
+                    dicReportTemplates[key].Add(survey_id, survey_name);
+                });
+
+                List<string> Empty_Survey = new List<string>();
                 Statistics.ForEach((x) =>
                 {
                     XDocument xDocument = XDocument.Parse(x.StatisticsList, LoadOptions.None);
                     XElement xStatistics = xDocument.Element("Statistics");
 
                     string TeacherName = HttpUtility.HtmlDecode(xStatistics.Attribute("TeacherName").Value);            // 授課教師
-                    string CourseName = HttpUtility.HtmlDecode(xStatistics.Attribute("CourseName").Value);              //  開課
-                    string SubjectName = HttpUtility.HtmlDecode(xStatistics.Attribute("SubjectName").Value);            //   課程
-                    string SchoolYear = xStatistics.Attribute("SchoolYear").Value;                   //   學年度
-                    string Semester = xStatistics.Attribute("Semester").Value;                         //    學期
+                    string CourseName = HttpUtility.HtmlDecode(xStatistics.Attribute("CourseName").Value);              // 開課
+                    string SubjectName = HttpUtility.HtmlDecode(xStatistics.Attribute("SubjectName").Value);            // 課程
+                    string SchoolYear = xStatistics.Attribute("SchoolYear").Value;                                      // 學年度
+                    string Semester = xStatistics.Attribute("Semester").Value;                                          // 學期
+                     
+                    string key = x.CourseID + "-" + x.TeacherID;
+                    if (String.IsNullOrEmpty(dicReportTemplates[key].ElementAt(0).Key))
+                        Empty_Survey.Add(dicReportTemplates[key].ElementAt(0).Value);
 
                     if (option == 1)
                         file_name = SubjectName + "-課程教學評鑑統計表";
@@ -1030,13 +1022,49 @@ namespace TeachingEvaluation.Export
 
                     dicStatistics[file_name].Add(x);
                 });
+                if (Empty_Survey.Count>0)
+                {
+                    throw new Exception(string.Format("請先設定下列評鑑之教學意見表樣版：\n\n{0}", string.Join("\n", Empty_Survey.Distinct())));
+                }
+                //  統計群組、背景顏色
+                List<UDT.StatisticsGroup> StatisticsGroups = Access.Select<UDT.StatisticsGroup>();
+                Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
+                Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor = new Dictionary<string, Dictionary<string, Color>>();
+                StatisticsGroups.ForEach((x) =>
+                {
+                    XDocument xxDocument = XDocument.Parse(x.DisplayOrderList, LoadOptions.None);
+                    List<XElement> xElements = xxDocument.Descendants("Question").ToList();
+                    if (!string.IsNullOrEmpty(x.QuestionBgColor) && xElements.Count() > 0)
+                    {
+                        foreach (string display_order in xElements.Select(y => y.Attribute("DisplayOrder").Value))
+                        {
+                            if (!dicQuestionBackgroundColor.ContainsKey(x.SurveyID.ToString()))
+                                dicQuestionBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
+
+                            if (!dicQuestionBackgroundColor[x.SurveyID.ToString()].ContainsKey(display_order))
+                                dicQuestionBackgroundColor[x.SurveyID.ToString()].Add(display_order, Color.FromName(x.QuestionBgColor));
+                            else
+                            {
+                                if (Color.FromName(x.QuestionBgColor) != Color.White)
+                                    dicQuestionBackgroundColor[x.SurveyID.ToString()][display_order] = Color.FromName(x.QuestionBgColor);
+                            }
+                        }
+                    }
+                    if (!dicEvaluationBackgroundColor.ContainsKey(x.SurveyID.ToString()))
+                        dicEvaluationBackgroundColor.Add(x.SurveyID.ToString(), new Dictionary<string, Color>());
+
+                    if (!dicEvaluationBackgroundColor[x.SurveyID.ToString()].ContainsKey(x.Name))
+                        dicEvaluationBackgroundColor[x.SurveyID.ToString()].Add(x.Name, Color.FromName(x.EvaluationBgColor));
+                });
+
+                Workbook wb = new Workbook();
                 foreach (string key in dicStatistics.Keys)
                 {
                     Workbook new_workbook = new Workbook();
                     //new_workbook.Worksheets.Cast<Worksheet>().ToList().ForEach(x => new_workbook.Worksheets.RemoveAt(x.Index));
                     foreach (UDT.TeacherStatistics Statistic in dicStatistics[key])
                     {
-                        wb = MakeExcelDocument(Statistic, dicQuestionHierarchies);
+                        wb = MakeExcelDocument(Statistic, dicQuestionHierarchies, dicQuestionBackgroundColor, dicEvaluationBackgroundColor);
                         new_workbook.Combine(wb);
                         wb.Worksheets.Cast<Worksheet>().ToList().ForEach(x => wb.Worksheets.RemoveAt(x.Index));
                     }
@@ -1047,6 +1075,7 @@ namespace TeachingEvaluation.Export
                     });
                     dicFiles.Add(key, new_workbook);
                 }
+                return dicFiles;
             });
 
             task.ContinueWith((x) =>
@@ -1075,13 +1104,13 @@ namespace TeachingEvaluation.Export
                         return;
                 } while (!System.IO.Directory.Exists(filePath));
 
-                foreach (string fileName in dicFiles.Keys)
+                foreach (string fileName in x.Result.Keys)
                 {
                     try
                     {
                         //  檔案名稱不能有下列字元<>:"/\|?*
                         string new_fileName = fileName.Replace("：", "꞉").Replace(":", "꞉").Replace("/", "⁄").Replace("／", "⁄").Replace(@"\", "∖").Replace("＼", "∖").Replace("?", "_").Replace("？", "_").Replace("*", "✻").Replace("＊", "✻").Replace("<", "〈").Replace("＜", "〈").Replace(">", "〉").Replace("＞", "〉").Replace("\"", "''").Replace("”", "''").Replace("|", "ㅣ").Replace("｜", "ㅣ");
-                        dicFiles[fileName].Save(Path.Combine(filePath, new_fileName + ".xls"), FileFormatType.Excel2003);
+                        x.Result[fileName].Save(Path.Combine(filePath, new_fileName + ".xls"), FileFormatType.Excel2003);
                         System.Diagnostics.Process.Start(filePath);
                     }
                     catch
@@ -1132,176 +1161,351 @@ namespace TeachingEvaluation.Export
             return template;
         }
 
-        private void GetStatisticsHeader()
+        private string ToChineseNo(int no)
         {
-
+            switch (no.ToString())
+            {
+                case "1": return "一"; 
+                case "2": return "二";
+                case "3": return "三";
+                case "4": return "四";
+                case "5": return "五";
+                case "6": return "六";
+                case "7": return "七";
+                case "8": return "八";
+                case "9": return "九";
+                default : return "";
+            }
         }
 
-        private List<DataBindedSheet> GetDataBindedSheets(StudentRecord Student)
+        //  報表標題
+        private List<DataBindedSheet> Get報表標題(XElement xStatistics, Workbook wb)
         {
-            Workbook wb = new Workbook();
-            MemoryStream ms = new MemoryStream();   // (Properties.Resources.EMBA_歷年成績表_樣版);
-            wb.Open(ms);
+            string CSAttendCount = xStatistics.Attribute("CSAttendCount").Value;    //  修課人數
+            string FeedBackCount = xStatistics.Attribute("FeedBackCount").Value;    //  填答人數
+            string TeacherName = HttpUtility.HtmlDecode(xStatistics.Attribute("TeacherName").Value);            //  授課教師
+            string CourseName = HttpUtility.HtmlDecode(xStatistics.Attribute("CourseName").Value);              //  開課
+            string SubjectName = HttpUtility.HtmlDecode(xStatistics.Attribute("SubjectName").Value);            //  課程
+            string ClassName = xStatistics.Attribute("ClassName").Value;                    //  班次
+            string SubjectCode = xStatistics.Attribute("SubjectCode").Value;                //  課程識別碼
+            string NewSubjectCode = xStatistics.Attribute("NewSubjectCode").Value;  //  課號
+            string SchoolYear = xStatistics.Attribute("SchoolYear").Value;                      //  學年度
+            string Semester = xStatistics.Attribute("Semester").Value;                              //  學期
+            string CourseID = xStatistics.Attribute("CourseID").Value;                              //  開課系統編號
+            string TeacherID = xStatistics.Attribute("TeacherID").Value;                            //  授課教師系統編號
+            string SurveyDate = xStatistics.Attribute("SurveyDate").Value;                      //  問卷調查日期
+            string SurveyID = xStatistics.Attribute("SurveyID").Value;                              //  問卷系統編號
 
             List<DataBindedSheet> DataBindedSheets = new List<DataBindedSheet>();
-
             DataBindedSheet DataBindedSheet = new DataBindedSheet();
-            DataBindedSheet.Worksheet = wb.Worksheets["PageHeader"];
+            DataBindedSheet.Worksheet = wb.Worksheets["報表標題"];
             DataBindedSheet.DataTables = new List<DataTable>();
-            DataBindedSheet.DataTables.Add(Student.StudentNumber.ToDataTable("學號", "學號"));
-            DataBindedSheet.DataTables.Add(Student.Name.ToDataTable("姓名", "姓名"));
-            DataBindedSheet.DataTables.Add(Student.Gender.ToDataTable("性別", "性別"));
-
-            if (!Student.Birthday.HasValue)
-            {
-                DataBindedSheet.DataTables.Add("".ToDataTable("出生日期", "出生日期"));
-            }
-            else
-            {
-                DateTime birthday;
-                if (DateTime.TryParse(Student.Birthday.Value + "", out birthday))
-                    DataBindedSheet.DataTables.Add(birthday.ToString("yyyy/MM/dd").ToDataTable("出生日期", "出生日期"));
-                else
-                    DataBindedSheet.DataTables.Add("".ToDataTable("出生日期", "出生日期"));
-            }
-
-            DataBindedSheet.DataTables.Add(StudentBrief2.EnrollYear.ToDataTable("入學年度", "入學年度"));
-            DataBindedSheet.DataTables.Add(DepartmentGroup.Name.ToDataTable("系所組別", "系所組別"));
+            DataBindedSheet.DataTables.Add(SchoolYear.ToDataTable("學年度", "學年度"));
+            DataBindedSheet.DataTables.Add(Semester.ToDataTable("學期", "學期"));
+            DataBindedSheet.DataTables.Add(SubjectName.ToDataTable("科目名稱", "科目名稱"));
+            DataBindedSheet.DataTables.Add(NewSubjectCode.ToDataTable("課號", "課號"));
+            DataBindedSheet.DataTables.Add(ClassName.ToDataTable("班次", "班次"));
+            DataBindedSheet.DataTables.Add(TeacherName.ToDataTable("任課教師", "任課教師"));
+            DataBindedSheet.DataTables.Add(CSAttendCount.ToDataTable("修課人數", "修課人數"));
+            DataBindedSheet.DataTables.Add(FeedBackCount.ToDataTable("填答人數", "填答人數"));
+            DataBindedSheet.DataTables.Add(SurveyDate.ToDataTable("問卷調查日期", "問卷調查日期"));
             DataBindedSheets.Add(DataBindedSheet);
 
-            Dictionary<string, KeyValuePair> dicSubjectGroupGredits = new Dictionary<string, KeyValuePair>();
-            if (this.dicSubjectSemesterScores.ContainsKey(Student.ID))
+            return DataBindedSheets;
+        }
+
+        //  基本資料
+        private List<DataBindedSheet> Get基本資料(List<XElement> xStatistics, Workbook wb, int DisplayOrder)
+        {
+            List<DataBindedSheet> DataBindedSheets = new List<DataBindedSheet>();
+            //  基本資料-標題
+            DataBindedSheet DataBindedSheet = new DataBindedSheet();
+            DataBindedSheet.Worksheet = wb.Worksheets["基本資料-標題"];
+            DataBindedSheet.DataTables = new List<DataTable>();
+            DataBindedSheet.DataTables.Add((ToChineseNo(DisplayOrder) + "、").ToDataTable("項次", "項次"));
+            DataBindedSheets.Add(DataBindedSheet);
+
+            //  基本資料-資料
+            foreach (XElement xElement in xStatistics)
             {
-                List<UDT.SubjectSemesterScore> SubjectSemesterScores = this.dicSubjectSemesterScores[Student.ID];
-                SubjectSemesterScores.ForEach((x) =>
-                {
-                    if (string.IsNullOrEmpty(x.NewSubjectCode))
-                    {
-                        if (this.dicSubjects.ContainsKey(x.SubjectID.ToString()))
-                            x.NewSubjectCode = this.dicSubjects[x.SubjectID.ToString()].NewSubjectCode;
-                    }
-                });
-                SubjectSemesterScores = SubjectSemesterScores.OrderBy(x => x.SchoolYear.HasValue ? x.SchoolYear.Value : 0).ThenBy(x => x.Semester.HasValue ? x.Semester.Value : 0).ThenBy(x => x.NewSubjectCode).ToList();
+                DataBindedSheet = new DataBindedSheet();
+                DataBindedSheet.Worksheet = wb.Worksheets["基本資料-資料"];
+                DataBindedSheet.DataTables = new List<DataTable>();
+                //  項次
+                DataBindedSheet.DataTables.Add((xElement.Attribute("No").Value + ".").ToDataTable("項次", "項次"));
 
-                int credit_total = 0;
-                foreach (UDT.SubjectSemesterScore SubjectSemesterScore in SubjectSemesterScores)
+                IEnumerable<XElement> Options = xElement.Descendants("Option");
+                if (Options.Count() > 0) Options = Options.OrderBy(x => int.Parse(x.Attribute("No").Value));
+                    
+                string question_content = string.Empty;
+                foreach (XElement xOption in Options)
+                {
+                    //  選項做答人數
+                    DataBindedSheet.DataTables.Add(xOption.Attribute("AnswerCount").Value.ToDataTable("做答人數-" + xOption.Attribute("No").Value, "做答人數-" + xOption.Attribute("No").Value));
+                    question_content += "(" + xOption.Attribute("No").Value + ")" + HttpUtility.HtmlDecode(xOption.Attribute("Content").Value);
+                }
+                DataBindedSheet.DataTables.Add(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value + question_content).ToDataTable("題目", "題目"));
+            
+            }
+            //  基本資料-空白列
+            foreach(Worksheet workSheet in wb.Worksheets)
+            {
+                if (workSheet.Name == "基本資料-空白列")
                 {
                     DataBindedSheet = new DataBindedSheet();
-                    DataBindedSheet.Worksheet = wb.Worksheets["DataSection"];
+                    DataBindedSheet.Worksheet = workSheet;
                     DataBindedSheet.DataTables = new List<DataTable>();
-                    DataBindedSheet.DataTables.Add((SubjectSemesterScore.SchoolYear.HasValue ? SubjectSemesterScore.SchoolYear.Value + "" : "").ToDataTable("學年度", "學年度"));
-                    DataBindedSheet.DataTables.Add((SubjectSemesterScore.Semester.HasValue ? SubjectSemesterScore.Semester.Value + "" : "").ToDataTable("學期", "學期"));
-                    DataBindedSheet.DataTables.Add(SubjectSemesterScore.NewSubjectCode.ToDataTable("課號", "課號"));
-
-                    DataBindedSheet.DataTables.Add(SubjectSemesterScore.SubjectCode.ToDataTable("課程識別碼", "課程識別碼"));
-                    DataBindedSheet.DataTables.Add(SubjectSemesterScore.SubjectName.ToDataTable("課程名稱", "課程名稱"));
-                    DataBindedSheet.DataTables.Add(SubjectSemesterScore.Score.ToDataTable("成績", "成績"));
-                    DataBindedSheet.DataTables.Add(SubjectSemesterScore.Credit.ToDataTable("學分數", "學分數"));
-
-                    if (dicGraduationSubjectLists.ContainsKey(SubjectSemesterScore.SubjectID))
-                    {
-                        string SubjectGroup = dicGraduationSubjectLists[SubjectSemesterScore.SubjectID].SubjectGroup;
-                        DataBindedSheet.DataTables.Add(SubjectGroup.ToDataTable("群組別", "群組別"));
-                        if (!dicSubjectGroupGredits.ContainsKey(SubjectGroup))
-                            dicSubjectGroupGredits.Add(SubjectGroup, new KeyValuePair());
-
-                        if (dicGraduationSubjectGroups.ContainsKey(SubjectGroup))
-                            dicSubjectGroupGredits[SubjectGroup].Key = dicGraduationSubjectGroups[SubjectGroup].LowestCredit;
-                        if (SubjectSemesterScore.IsPass)
-                        {
-                            if (dicSubjectGroupGredits[SubjectGroup].Value == null)
-                                dicSubjectGroupGredits[SubjectGroup].Value = SubjectSemesterScore.Credit;
-                            else
-                                dicSubjectGroupGredits[SubjectGroup].Value += SubjectSemesterScore.Credit;
-                        }
-                    }
-                    else
-                        DataBindedSheet.DataTables.Add("".ToDataTable("群組別", "群組別"));
-
-                    if (!string.IsNullOrEmpty(SubjectSemesterScore.OffsetCourse) || SubjectSemesterScore.IsPass)
-                    {
-                        DataBindedSheet.DataTables.Add("已取得學分".ToDataTable("備註", "備註"));
-                    }
-                    else
-                        DataBindedSheet.DataTables.Add("未取得學分".ToDataTable("備註", "備註"));
-
-                    if (SubjectSemesterScore.IsPass && string.IsNullOrEmpty(SubjectSemesterScore.OffsetCourse))
-                        credit_total += SubjectSemesterScore.Credit;
-
                     DataBindedSheets.Add(DataBindedSheet);
                 }
-
-                int offset_credit = SubjectSemesterScores.Where(x => !string.IsNullOrWhiteSpace(x.OffsetCourse)).Sum(x => x.Credit);
-                DataBindedSheet = new DataBindedSheet();
-                DataBindedSheet.Worksheet = wb.Worksheets["PageFooter-Header"];
-                DataBindedSheet.DataTables = new List<DataTable>();
-                DataBindedSheet.DataTables.Add(credit_total.ToDataTable("修習及格學分", "修習及格學分"));
-                DataBindedSheet.DataTables.Add(offset_credit.ToDataTable("抵免學分", "抵免學分"));
-                DataBindedSheet.DataTables.Add((credit_total + offset_credit).ToDataTable("實得總學分", "實得總學分"));
-                DataBindedSheets.Add(DataBindedSheet);
-
-                List<UDT.GraduationSubjectGroupRequirement> GraduationSubjectGroupRequirements = dicGraduationSubjectGroups.Values.ToList();
-                GraduationSubjectGroupRequirements.Sort(
-                delegate(UDT.GraduationSubjectGroupRequirement x, UDT.GraduationSubjectGroupRequirement y)
-                {
-                    int index_x = SubjectGroups_Sort.IndexOf(x.SubjectGroup);
-                    int index_y = SubjectGroups_Sort.IndexOf(y.SubjectGroup);
-                    if (index_x < 0)
-                        index_x = int.MaxValue;
-                    if (index_y < 0)
-                        index_y = int.MaxValue;
-
-                    return index_x.CompareTo(index_y);
-                });
-
-                foreach (UDT.GraduationSubjectGroupRequirement GraduationSubjectGroupRequirement in GraduationSubjectGroupRequirements)
-                {
-                    string SubjectGroup = GraduationSubjectGroupRequirement.SubjectGroup;
-                    DataBindedSheet = new DataBindedSheet();
-                    DataBindedSheet.Worksheet = wb.Worksheets["PageFooter-DataSection"];
-                    DataBindedSheet.DataTables = new List<DataTable>();
-                    DataBindedSheet.DataTables.Add(SubjectGroup.ToDataTable("群組別", "群組別"));
-
-                    int gCredit = 0;
-
-                    if (dicSubjectGroupGredits.ContainsKey(SubjectGroup))
-                        if (dicSubjectGroupGredits[SubjectGroup].Value.HasValue)
-                            gCredit = dicSubjectGroupGredits[SubjectGroup].Value.Value;
-
-                    DataBindedSheet.DataTables.Add((gCredit + "").ToDataTable("已取得學分數", "已取得學分數"));
-
-                    int sCredit = GraduationSubjectGroupRequirement.LowestCredit;
-                    if (dicSubjectGroupGredits.ContainsKey(SubjectGroup))
-                    {
-                        if (sCredit > gCredit)
-                            DataBindedSheet.DataTables.Add((sCredit - gCredit).ToDataTable("不足學分數", "不足學分數"));
-                        else
-                            DataBindedSheet.DataTables.Add("0".ToDataTable("不足學分數", "不足學分數"));
-                    }
-                    else
-                    {
-                        DataBindedSheet.DataTables.Add(sCredit.ToDataTable("不足學分數", "不足學分數"));
-                    }
-                    DataBindedSheet.DataTables.Add(sCredit.ToDataTable("應修學分數", "應修學分數"));
-
-                    DataBindedSheets.Add(DataBindedSheet);
-                }
-
-                DataBindedSheet = new DataBindedSheet();
-                DataBindedSheet.Worksheet = wb.Worksheets["PageFooter-Footer"];
-                DataBindedSheet.DataTables = new List<DataTable>();
-                DataBindedSheets.Add(DataBindedSheet);
             }
 
             return DataBindedSheets;
         }
 
-        private Workbook GenerateWorkbook(StudentRecord Student)
+        //  非問答題、非個案題、非評鑑統計群組
+        private List<DataBindedSheet> GetNoneEssayNoneCase(List<XElement> xStatistics, Workbook wb, int DisplayOrder, string Title)
+        {
+            List<DataBindedSheet> DataBindedSheets = new List<DataBindedSheet>();
+            //  XXXX-標題
+            DataBindedSheet DataBindedSheet = new DataBindedSheet();
+            DataBindedSheet.Worksheet = wb.Worksheets[Title + "-標題"];
+            DataBindedSheet.DataTables = new List<DataTable>();
+            DataBindedSheet.DataTables.Add((ToChineseNo(DisplayOrder) + "、").ToDataTable("項次", "項次"));
+            DataBindedSheets.Add(DataBindedSheet);
+
+            //  XXXX-資料
+            foreach (XElement xElement in xStatistics)
+            {
+                DataBindedSheet = new DataBindedSheet();
+                DataBindedSheet.Worksheet = wb.Worksheets[Title + "-資料"];
+                DataBindedSheet.DataTables = new List<DataTable>();
+                //  項次
+                DataBindedSheet.DataTables.Add((xElement.Attribute("No").Value + ".").ToDataTable("項次", "項次"));
+                //  非基本資料的題目
+                //if (Hierarchy.Title != "基本資料")
+                //    DataBindedSheet.DataTables.Add(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value).ToDataTable("題目", "題目"));
+
+                IEnumerable<XElement> Options = xElement.Descendants("Option");
+                if (Options.Count() > 0) Options = Options.OrderBy(x => int.Parse(x.Attribute("No").Value));
+                    
+                string question_content = string.Empty;
+                foreach (XElement xOption in Options)
+                {
+                    //  選項做答人數
+                    DataBindedSheet.DataTables.Add(xOption.Attribute("AnswerCount").Value.ToDataTable("做答人數-" + xOption.Attribute("No").Value, "做答人數-" + xOption.Attribute("No").Value));
+                    question_content += "(" + xOption.Attribute("No").Value + ")" + HttpUtility.HtmlDecode(xOption.Attribute("Content").Value);
+                }
+                //  基本資料的題目
+                //if (Hierarchy.Title == "基本資料")
+                //{
+                //    DataBindedSheet.DataTables.Add(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value + question_content).ToDataTable("題目", "題目"));
+                //}
+                //  評鑑值
+                DataBindedSheet.DataTables.Add(xElement.Attribute("Score").Value.ToDataTable("評鑑值", "評鑑值"));
+            }
+            
+            //  XXXX-空白列
+            foreach(Worksheet workSheet in wb.Worksheets)
+            {
+                if (workSheet.Name == Title + "-空白列")
+                {
+                    DataBindedSheet = new DataBindedSheet();
+                    DataBindedSheet.Worksheet = workSheet;
+                    DataBindedSheet.DataTables = new List<DataTable>();
+                    DataBindedSheets.Add(DataBindedSheet);
+                }
+            }
+
+            return DataBindedSheets;
+        }
+
+        private List<DataBindedSheet> GetDataBindedSheets(StudentRecord Student, UDT.TeacherStatistics Statistic, Dictionary<string, UDT.Hierarchy> dicQuestionHierarchies, Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor, Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor)
+        {
+            Dictionary<UDT.Hierarchy, List<XElement>> dicHierarchyQuestions = new Dictionary<UDT.Hierarchy, List<XElement>>();
+
+            XDocument xDocument = XDocument.Parse(Statistic.StatisticsList, LoadOptions.None);
+            XElement xStatistics = xDocument.Element("Statistics");
+
+            #region 表頭
+
+            string CSAttendCount = xStatistics.Attribute("CSAttendCount").Value;    //  修課人數
+            string FeedBackCount = xStatistics.Attribute("FeedBackCount").Value;    //  填答人數
+            string TeacherName = HttpUtility.HtmlDecode(xStatistics.Attribute("TeacherName").Value);            //  授課教師
+            string CourseName = HttpUtility.HtmlDecode(xStatistics.Attribute("CourseName").Value);              //  開課
+            string SubjectName = HttpUtility.HtmlDecode(xStatistics.Attribute("SubjectName").Value);            //  課程
+            string ClassName = xStatistics.Attribute("ClassName").Value;                    //  班次
+            string SubjectCode = xStatistics.Attribute("SubjectCode").Value;                //  課程識別碼
+            string NewSubjectCode = xStatistics.Attribute("NewSubjectCode").Value;  //  課號
+            string SchoolYear = xStatistics.Attribute("SchoolYear").Value;                      //  學年度
+            string Semester = xStatistics.Attribute("Semester").Value;                              //  學期
+            string CourseID = xStatistics.Attribute("CourseID").Value;                              //  開課系統編號
+            string TeacherID = xStatistics.Attribute("TeacherID").Value;                            //  授課教師系統編號
+            string SurveyDate = xStatistics.Attribute("SurveyDate").Value;                      //  問卷調查日期
+            string SurveyID = xStatistics.Attribute("SurveyID").Value;                              //  問卷系統編號
+
+            //  開啟意見調查表樣版檔
+            List<UDT.ReportTemplate> templates = Access.Select<UDT.ReportTemplate>(string.Format("ref_survey_id = {0}", SurveyID));
+            byte[] _buffer = Convert.FromBase64String(templates.ElementAt(0).Template);
+            MemoryStream ms = new MemoryStream(_buffer);
+            Workbook wb = new Workbook();
+            wb.Open(ms);
+            List<string> workSheetNames = new List<string>();
+            wb.Worksheets.Cast<Worksheet>().ToList().ForEach(x=>workSheetNames.Add(x.Name));
+
+            List<DataBindedSheet> DataBindedSheets = new List<DataBindedSheet>();
+
+            DataBindedSheet DataBindedSheet = new DataBindedSheet();
+            DataBindedSheet.Worksheet = wb.Worksheets["報表標題"];
+            DataBindedSheet.DataTables = new List<DataTable>();
+            DataBindedSheet.DataTables.Add(SchoolYear.ToDataTable("學年度", "學年度"));
+            DataBindedSheet.DataTables.Add(Semester.ToDataTable("學期", "學期"));
+            DataBindedSheet.DataTables.Add(SubjectName.ToDataTable("科目名稱", "科目名稱"));
+            DataBindedSheet.DataTables.Add(NewSubjectCode.ToDataTable("課號", "課號"));
+            DataBindedSheet.DataTables.Add(ClassName.ToDataTable("班次", "班次"));
+            DataBindedSheet.DataTables.Add(TeacherName.ToDataTable("任課教師", "任課教師"));
+            DataBindedSheet.DataTables.Add(CSAttendCount.ToDataTable("修課人數", "修課人數"));
+            DataBindedSheet.DataTables.Add(FeedBackCount.ToDataTable("填答人數", "填答人數"));
+            DataBindedSheet.DataTables.Add(SurveyDate.ToDataTable("問卷調查日期", "問卷調查日期"));
+            DataBindedSheets.Add(DataBindedSheet);
+
+            #endregion
+
+            #region 群組化題目並排序
+
+            //  將所有題目加入「標題」群組
+            foreach (XElement xElement in xDocument.Descendants("Question"))
+            {
+                string question_id = xElement.Attribute("ID").Value;
+                if (dicQuestionHierarchies.ContainsKey(question_id))
+                {
+                    UDT.Hierarchy Hierarchy = dicQuestionHierarchies[question_id];
+                    if (!dicHierarchyQuestions.ContainsKey(Hierarchy))
+                        dicHierarchyQuestions.Add(Hierarchy, new List<XElement>());
+
+                    dicHierarchyQuestions[Hierarchy].Add(xElement);
+                }
+            }
+
+            //  依照標題之顯示順序及題號排序
+            Dictionary<UDT.Hierarchy, List<XElement>> dicOrderedHierarchyQuestions = new Dictionary<UDT.Hierarchy, List<XElement>>();
+            foreach (KeyValuePair<UDT.Hierarchy, List<XElement>> kv in dicHierarchyQuestions.OrderBy(x => x.Key.DisplayOrder))
+            {
+                if (!dicOrderedHierarchyQuestions.ContainsKey(kv.Key))
+                    dicOrderedHierarchyQuestions.Add(kv.Key, new List<XElement>());
+
+                dicOrderedHierarchyQuestions[kv.Key].AddRange(kv.Value.OrderBy(x => int.Parse(x.Attribute("No").Value)));
+            }
+
+            #endregion
+
+            string report_name = SchoolYear + "-" + Semester + "-" + CourseName + "-" + TeacherName;
+            Dictionary<ReportHelper.CellObject, ReportHelper.CellStyle> dicCellStyles = new Dictionary<CellObject, CellStyle>();
+
+            #region 報表資料的部份
+
+            //  先產生資料容器
+            DataTable EnrollRecordTable = new DataTable("NoneSelfAssessmentContent");
+            this.MakeTableColumn(EnrollRecordTable);
+
+            //  接著將資料倒進容器中
+            int i = 0;
+            foreach (UDT.Hierarchy Hierarchy in dicOrderedHierarchyQuestions.Keys)
+            {
+                ////  群組首
+                //this.MakeGroupData(EnrollRecordTable, Hierarchy, report_name, dicCellStyles);
+
+                ////  題目及答案
+                //this.MakeDetailOneData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], report_name, dicCellStyles);
+                //this.MakeDetailTwoData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], xDocument.Descendants("StatisticsGroup"), report_name, dicCellStyles, dicQuestionBackgroundColor, dicEvaluationBackgroundColor, SurveyID);
+                //this.MakeDetailThreeData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], report_name, dicCellStyles);
+                //this.MakeDetailFourData(EnrollRecordTable, Hierarchy, dicOrderedHierarchyQuestions[Hierarchy], report_name, dicCellStyles);
+
+                if (!workSheetNames.Contains(Hierarchy.Title))
+                    continue;
+
+                //  群組標題
+                DataBindedSheet = new DataBindedSheet();
+                DataBindedSheet.Worksheet = wb.Worksheets[Hierarchy.Title + "-標題"];
+                DataBindedSheet.DataTables = new List<DataTable>();
+                DataBindedSheet.DataTables.Add(i.ToDataTable("項次", "項次"));
+                DataBindedSheets.Add(DataBindedSheet);
+
+                //  群組資料
+                foreach (XElement xElement in dicOrderedHierarchyQuestions[Hierarchy])
+                {
+                    DataBindedSheet = new DataBindedSheet();
+                    DataBindedSheet.Worksheet = wb.Worksheets[Hierarchy.Title + "-資料"];
+                    DataBindedSheet.DataTables = new List<DataTable>();
+                    //  項次
+                    DataBindedSheet.DataTables.Add((xElement.Attribute("No").Value + ".").ToDataTable("項次", "項次"));
+                    //  非基本資料的題目
+                    if (Hierarchy.Title != "基本資料")
+                        DataBindedSheet.DataTables.Add(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value).ToDataTable("題目", "題目"));
+
+                    IEnumerable<XElement> Options = xElement.Descendants("Option");
+                    if (Options.Count() > 0) Options = Options.OrderBy(x => int.Parse(x.Attribute("No").Value));
+
+                    string question_content = string.Empty;
+                    foreach (XElement xOption in Options)
+                    {
+                        //  選項做答人數
+                        DataBindedSheet.DataTables.Add(xOption.Attribute("AnswerCount").Value.ToDataTable("做答人數-" + xOption.Attribute("No").Value, "做答人數-" + xOption.Attribute("No").Value));
+                        question_content += "(" + xOption.Attribute("No").Value + ")" + HttpUtility.HtmlDecode(xOption.Attribute("Content").Value);
+                    }
+                    //  基本資料的題目
+                    if (Hierarchy.Title == "基本資料")
+                    {
+                        DataBindedSheet.DataTables.Add(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value + question_content).ToDataTable("題目", "題目"));
+                    }
+                    //  評鑑值
+                    DataBindedSheet.DataTables.Add(xElement.Attribute("Score").Value.ToDataTable("評鑑值", "評鑑值"));
+                }
+
+                //  群組空白列
+                if (workSheetNames.Contains(Hierarchy.Title + "-空白列"))
+                {
+                    DataBindedSheet = new DataBindedSheet();
+                    DataBindedSheet.Worksheet = wb.Worksheets[Hierarchy.Title + "-空白列"];
+                    DataBindedSheet.DataTables = new List<DataTable>();
+                    DataBindedSheets.Add(DataBindedSheet);
+                }
+
+                //  平均評鑑值
+                foreach (XElement xElement in xDocument.Descendants("StatisticsGroup"))
+                {
+                    DataBindedSheet = new DataBindedSheet();
+                    DataBindedSheet.Worksheet = wb.Worksheets["平均評鑑值"];
+                    DataBindedSheet.DataTables = new List<DataTable>();
+                    DataBindedSheet.DataTables.Add(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value).ToDataTable("群組名稱", "群組名稱"));
+                    DataBindedSheet.DataTables.Add(xElement.Attribute("Score").Value.ToDataTable("評鑑值", "評鑑值"));
+                    DataBindedSheets.Add(DataBindedSheet);
+
+                    //  評鑑值背景色
+                    if (dicEvaluationBackgroundColor.ContainsKey(SurveyID))
+                    {
+                        if (dicEvaluationBackgroundColor[SurveyID].ContainsKey(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value)))
+                        {
+                            //CellObject co = new CellObject(EnrollRecordTable.Rows.Count - 1, 1, EnrollRecordTable.TableName, "DataSection", "平均評鑑值");
+                            //cs.SetFontBackGroundColor(dicEvaluationBackgroundColor[SurveyID][HttpUtility.HtmlDecode(xElement.Attribute("Content").Value)]);
+                            //dicCellStyles.Add(co, cs);
+                        }
+                    }
+                }
+
+                //  個案題
+            }
+
+            #endregion      
+
+            return DataBindedSheets;
+        }
+
+        private Workbook GenerateWorkbook(StudentRecord Student, UDT.TeacherStatistics Statistic, Dictionary<string, UDT.Hierarchy> dicQuestionHierarchies, Dictionary<string, Dictionary<string, Color>> dicQuestionBackgroundColor, Dictionary<string, Dictionary<string, Color>> dicEvaluationBackgroundColor)
         {
             Workbook workbook = new Workbook();
             workbook.Worksheets.Cast<Worksheet>().ToList().ForEach(x => workbook.Worksheets.RemoveAt(x.Name));
 
-            List<DataBindedSheet> TemplateSheets = this.GetDataBindedSheets(Student);
+            List<DataBindedSheet> TemplateSheets = this.GetDataBindedSheets(Student, Statistic, dicQuestionHierarchies, dicQuestionBackgroundColor, dicEvaluationBackgroundColor);
 
             int instanceSheetIndex = workbook.Worksheets.Add();
             workbook.Worksheets[instanceSheetIndex].Name = Student.StudentNumber + "-" + Student.Name;
@@ -1341,70 +1545,70 @@ namespace TeachingEvaluation.Export
 
         }
 
-        private void btnSubjectSemesterScoreHistory_Click(object sender, EventArgs e)
-        {
-            this.circularProgress.Visible = true;
-            this.circularProgress.IsRunning = true;
-            this.btnPrint.Enabled = false;
-            Task<Workbook> task = Task<Workbook>.Factory.StartNew(() =>
-            {
-                Workbook new_workbook = new Workbook();
-                foreach (string key in this.dicStudents.Keys)
-                {
-                    Workbook wb = this.GenerateWorkbook(this.dicStudents[key]);
-                    new_workbook.Combine(wb);
-                    new_workbook.Worksheets.Cast<Worksheet>().ToList().ForEach((x) =>
-                    {
-                        if (x.Cells.MaxDataColumn == 0 && x.Cells.MaxDataRow == 0)
-                            new_workbook.Worksheets.RemoveAt(x.Index);
-                    });
-                }
-                return new_workbook;
-            });
+        //private void btnSubjectSemesterScoreHistory_Click(object sender, EventArgs e)
+        //{
+        //    this.circularProgress.Visible = true;
+        //    this.circularProgress.IsRunning = true;
+        //    this.btnPrint.Enabled = false;
+        //    Task<Workbook> task = Task<Workbook>.Factory.StartNew(() =>
+        //    {
+        //        Workbook new_workbook = new Workbook();
+        //        foreach (string key in this.dicStudents.Keys)
+        //        {
+        //            Workbook wb = this.GenerateWorkbook(this.dicStudents[key]);
+        //            new_workbook.Combine(wb);
+        //            new_workbook.Worksheets.Cast<Worksheet>().ToList().ForEach((x) =>
+        //            {
+        //                if (x.Cells.MaxDataColumn == 0 && x.Cells.MaxDataRow == 0)
+        //                    new_workbook.Worksheets.RemoveAt(x.Index);
+        //            });
+        //        }
+        //        return new_workbook;
+        //    });
 
-            task.ContinueWith((x) =>
-            {
-                this.circularProgress.Visible = false;
-                this.circularProgress.IsRunning = false;
-                this.btnPrint.Enabled = true;
-                if (x.Exception != null)
-                {
-                    MessageBox.Show(x.Exception.InnerException.Message);
-                    return;
-                }
+        //    task.ContinueWith((x) =>
+        //    {
+        //        this.circularProgress.Visible = false;
+        //        this.circularProgress.IsRunning = false;
+        //        this.btnPrint.Enabled = true;
+        //        if (x.Exception != null)
+        //        {
+        //            MessageBox.Show(x.Exception.InnerException.Message);
+        //            return;
+        //        }
 
-                System.Windows.Forms.SaveFileDialog sd = new System.Windows.Forms.SaveFileDialog();
-                sd.Title = "另存新檔";
-                sd.FileName = "歷年成績表" + DateTime.Now.ToString(" yyyy-MM-dd_HH_mm_ss") + ".xls";
-                sd.Filter = "Excel檔案 (*.xls)|*.xls|所有檔案 (*.*)|*.*";
-                sd.AddExtension = true;
-                if (sd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    try
-                    {
-                        x.Result.Save(sd.FileName, FileFormatType.Excel2003);
-                        System.Diagnostics.Process.Start(sd.FileName);
-                    }
-                    catch
-                    {
-                        FISCA.Presentation.Controls.MsgBox.Show("指定路徑無法存取。", "建立檔案失敗", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-                        return;
-                    }
-                }
-            }, System.Threading.CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
-        }
+        //        System.Windows.Forms.SaveFileDialog sd = new System.Windows.Forms.SaveFileDialog();
+        //        sd.Title = "另存新檔";
+        //        sd.FileName = "歷年成績表" + DateTime.Now.ToString(" yyyy-MM-dd_HH_mm_ss") + ".xls";
+        //        sd.Filter = "Excel檔案 (*.xls)|*.xls|所有檔案 (*.*)|*.*";
+        //        sd.AddExtension = true;
+        //        if (sd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        //        {
+        //            try
+        //            {
+        //                x.Result.Save(sd.FileName, FileFormatType.Excel2003);
+        //                System.Diagnostics.Process.Start(sd.FileName);
+        //            }
+        //            catch
+        //            {
+        //                FISCA.Presentation.Controls.MsgBox.Show("指定路徑無法存取。", "建立檔案失敗", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+        //                return;
+        //            }
+        //        }
+        //    }, System.Threading.CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+        //}
     }
 
-    public class DataBindedSheet
-    {
-        public Worksheet Worksheet { get; set; }
-        public List<DataTable> DataTables { get; set; }
-    }
+    //public class DataBindedSheet
+    //{
+    //    public Worksheet Worksheet { get; set; }
+    //    public List<DataTable> DataTables { get; set; }
+    //}
 
-    public class KeyValuePair
-    {
-        public int? Key { get; set; }
-        public int? Value { get; set; }
-    }
+    //public class KeyValuePair
+    //{
+    //    public int? Key { get; set; }
+    //    public int? Value { get; set; }
+    //}
 
 }
