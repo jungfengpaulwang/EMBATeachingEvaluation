@@ -135,7 +135,7 @@ namespace TeachingEvaluation.Export
             DataBindedSheet.Worksheet = wb.Worksheets["報表標題"];
             DataBindedSheet.DataTables = new List<DataTable>();
             DataBindedSheet.DataTables.Add(SchoolYear.ToDataTable("學年度", "學年度"));
-            DataBindedSheet.DataTables.Add(Semester.ToDataTable("學期", "學期"));
+            DataBindedSheet.DataTables.Add(DataItems.SemesterItem.GetSemesterByCode(xStatistics.Attribute("Semester").Value).Name.ToDataTable("學期", "學期"));
             DataBindedSheet.DataTables.Add(SubjectName.ToDataTable("科目名稱", "科目名稱"));
             DataBindedSheet.DataTables.Add(NewSubjectCode.ToDataTable("課號", "課號"));
             DataBindedSheet.DataTables.Add(ClassName.ToDataTable("班次", "班次"));
@@ -256,7 +256,7 @@ namespace TeachingEvaluation.Export
             DataBindedSheet.Worksheet = wb.Worksheets[Hierarchy.Title + "-個案題-題目"];
             DataBindedSheet.DataTables = new List<DataTable>();
             //  項次
-            DataBindedSheet.DataTables.Add(DisplayOrder.ToDataTable("項次", "項次"));
+            DataBindedSheet.DataTables.Add((DisplayOrder + ".").ToDataTable("項次", "項次"));
             //  題目
             DataBindedSheet.DataTables.Add(HttpUtility.HtmlDecode(xElement.Attribute("Content").Value).ToDataTable("題目", "題目"));
             //  題目高度
@@ -266,7 +266,7 @@ namespace TeachingEvaluation.Export
             this.dicCellStyles.Add(co, cs);
             return DataBindedSheet;
         }
-        
+
         //  個案題-做答
         private DataBindedSheet GetCaseAnswer(string DisplayOrder, XElement xCase, UDT.Hierarchy Hierarchy, Workbook wb)
         {
