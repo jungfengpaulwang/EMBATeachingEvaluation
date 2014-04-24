@@ -71,12 +71,12 @@ namespace TeachingEvaluation
             };
             #endregion
 
-            #region 課程>評鑑>管理>教學意見表管理
+            #region 課程>評鑑>管理>評鑑報表樣版管理
 
-            RoleAclSource.Instance["課程"]["功能按鈕"].Add(new RibbonFeature("Button_TeachingEvaluation_SurveyTeacherReportTemplateManagement", "管理教學意見表樣版"));
+            RoleAclSource.Instance["課程"]["功能按鈕"].Add(new RibbonFeature("Button_TeachingEvaluation_SurveyTeacherReportTemplateManagement", "評鑑報表樣版管理"));
 
-            MotherForm.RibbonBarItems["課程", "評鑑"]["管理"]["教學意見表樣版"].Enable = UserAcl.Current["Button_TeachingEvaluation_SurveyTeacherReportTemplateManagement"].Executable;
-            MotherForm.RibbonBarItems["課程", "評鑑"]["管理"]["教學意見表樣版"].Click += delegate
+            MotherForm.RibbonBarItems["課程", "評鑑"]["管理"]["報表樣版"].Enable = UserAcl.Current["Button_TeachingEvaluation_SurveyTeacherReportTemplateManagement"].Executable;
+            MotherForm.RibbonBarItems["課程", "評鑑"]["管理"]["報表樣版"].Click += delegate
             {
                 (new Forms.TemplateManagement()).ShowDialog();
             };

@@ -11,6 +11,7 @@ using System.Web;
 using System.Xml.Linq;
 using ReportHelper;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace TeachingEvaluation.Export
 {
@@ -529,7 +530,7 @@ namespace TeachingEvaluation.Export
             Worksheet instanceSheet = workbook.Worksheets[instanceSheetIndex];
 
             int i = 0;
-            DataSet dataSet = new DataSet();
+            DataSet dataSet = new DataSet(TemplateSheets.ElementAt(0).Key);
             dataSet.Tables.AddRange(TemplateSheets.ElementAt(0).DataTables.ToArray());
             DocumentHelper.GenerateSheet(dataSet, instanceSheet, i, null);
             if (TemplateSheets.Count > 1)
@@ -546,7 +547,7 @@ namespace TeachingEvaluation.Export
             }
 
             //  移除樣版檔
-            TemplateSheets.ForEach(x => workbook.Worksheets.RemoveAt(x.Worksheet.Name));
+            //TemplateSheets.ForEach(x => workbook.Worksheets.RemoveAt(x.Worksheet.Name));
 
             //  移除報表中的變數
             DocumentHelper.RemoveReportVariable(workbook);

@@ -143,7 +143,7 @@
             this.Controls.Add(this.OpenFile);
             this.DoubleBuffered = true;
             this.Name = "ImportReportDocumentTemplate";
-            this.Text = "教學意見表樣版上載";
+            this.Text = "報表樣版上載";
             this.ResumeLayout(false);
 
         }

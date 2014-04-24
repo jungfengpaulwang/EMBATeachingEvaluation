@@ -375,7 +375,6 @@ namespace TeachingEvaluation.Export
 
             this.SelectedStatistics.Clear();
             this.dgvData.SelectedRows.Cast<DataGridViewRow>().ToList().ForEach(x => this.SelectedStatistics.Add(x.Tag as UDT.TeacherStatistics));
-
             //  驗證評鑑樣版是否對應教學意見調查表樣版
             Task<Dictionary<string, Workbook>> task = Task<Dictionary<string, Workbook>>.Factory.StartNew(() =>
             {
@@ -444,35 +443,42 @@ left join $ischool.emba.teaching_evaluation.report_template as rt on aSurvey.ref
                 List<UDT.Hierarchy> Hierarchies = Access.Select<UDT.Hierarchy>();
                 Dictionary<string, Workbook> dicSurveyIDs = new Dictionary<string, Workbook>();
                 Dictionary<string, List<Workbook>> dicWorkbooks = new Dictionary<string, List<Workbook>>();
-
-                this.SelectedStatistics.ForEach((x) =>
+                Dictionary<string, Workbook> dicFiles = new Dictionary<string, Workbook>();
+                object mylock = new object();
+                var result = Parallel.ForEach<UDT.TeacherStatistics>(this.SelectedStatistics, x =>
+                //this.SelectedStatistics.ForEach((x) =>
                 {
-                    XDocument xDocument = XDocument.Parse(x.StatisticsList, LoadOptions.None);
-                    XElement xStatistics = xDocument.Element("Statistics");
-                    string SurveyID = xStatistics.Attribute("SurveyID").Value;
-
-                    if (!dicSurveyIDs.ContainsKey(SurveyID))
-                        dicSurveyIDs.Add(SurveyID, this.GetSurveyTemplate(SurveyID));
-                    ExcelDocumentMaker excelDocumentMaker = new ExcelDocumentMaker(dicEvaluationBackgroundColor, dicQuestionBackgroundColor, QHRelations, Hierarchies, x, dicSurveyIDs[SurveyID]);
-                    Workbook wb = excelDocumentMaker.Produce();
-                    if (wb != null)
+                    lock (mylock)
                     {
-                        string key = string.Empty;
-                        if (this.FileType == 1)
-                            key = excelDocumentMaker.SubjectName + "-課程教學評鑑統計表";
-                        if (this.FileType == 2)
-                            key = excelDocumentMaker.CourseName + "-開課教學評鑑統計表";
-                        if (this.FileType == 3)
-                            key = excelDocumentMaker.TeacherName + "-授課教師教學評鑑統計表";
+                        XDocument xDocument = XDocument.Parse(x.StatisticsList, LoadOptions.None);
+                        XElement xStatistics = xDocument.Element("Statistics");
+                        string SurveyID = xStatistics.Attribute("SurveyID").Value;
 
-                        if (!dicWorkbooks.ContainsKey(key))
-                            dicWorkbooks.Add(key, new List<Workbook>());
+                        if (!dicSurveyIDs.ContainsKey(SurveyID))
+                            dicSurveyIDs.Add(SurveyID, this.GetSurveyTemplate(SurveyID));
 
-                        dicWorkbooks[key].Add(wb);
+                        ExcelDocumentMaker excelDocumentMaker = new ExcelDocumentMaker(dicEvaluationBackgroundColor, dicQuestionBackgroundColor, QHRelations, Hierarchies, x, dicSurveyIDs[SurveyID]);
+
+                        Workbook wb = excelDocumentMaker.Produce();
+
+                        if (wb != null)
+                        {
+                            string key = string.Empty;
+                            if (this.FileType == 1)
+                                key = excelDocumentMaker.SubjectName + "-課程教學評鑑統計表";
+                            if (this.FileType == 2)
+                                key = excelDocumentMaker.CourseName + "-開課教學評鑑統計表";
+                            if (this.FileType == 3)
+                                key = excelDocumentMaker.TeacherName + "-授課教師教學評鑑統計表";
+
+                                if (!dicWorkbooks.ContainsKey(key))
+                                    dicWorkbooks.Add(key, new List<Workbook>());
+
+                                dicWorkbooks[key].Add(wb);
+                        }
                     }
                 });
 
-                Dictionary<string, Workbook> dicFiles = new Dictionary<string, Workbook>();
                 try
                 {
                     foreach (string key in dicWorkbooks.Keys)
